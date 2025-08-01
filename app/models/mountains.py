@@ -54,6 +54,11 @@ class Ridge(SQLModel, table=True):
     def peaks_list(self) -> list:
         return self.peaks
 
+    @computed_field
+    @property
+    def infolinks_list(self) -> list:
+        return self.infolinks
+
 
 class RidgeOut(BaseModel):
     """
@@ -70,6 +75,17 @@ class RidgeOut(BaseModel):
     changed: datetime | None
 
     peaks_list: list | None = []
+    infolinks_list: list | None = []
+
+
+class RidgeShortOut(BaseModel):
+    """
+    Ridge model for single Ridge response
+    short information
+    """
+    model_config = ConfigDict(from_attributes=True)
+    slug: str | None
+    name: str = Field(max_length=128)
 
 
 class RidgeInfoLink(SQLModel, table=True):
@@ -106,9 +122,49 @@ class Peak(SQLModel, table=True):
     photos: List["PeakPhoto"] = Relationship(back_populates="peak")
     routes: List["Route"] = Relationship(back_populates="peak")
 
-#     @field_serializer('photos')
-#     def photos_serialize(photos: list):
-#         return ['a', 'b']
+    @computed_field
+    @property
+    def photos_list(self) -> list:
+        return self.photos
+
+    @computed_field
+    @property
+    def routes_list(self) -> list:
+        return self.routes
+
+
+class PeakOut(BaseModel):
+    """
+    Peak model for single Peak
+    """
+    model_config = ConfigDict(from_attributes=True)
+    id: int | None
+    slug: str | None
+    ridge_id: Optional[int]
+    ridge: Optional[RidgeShortOut]
+    name: str
+    description: str | None
+    height: int | None
+    # point_id: Optional[int]
+    point: Optional[GeoPoint]
+    photo: str | None
+    # editor
+    active: bool
+    changed: datetime
+
+    photos_list: list | None = []
+    routes_list: list | None = []
+
+
+class PeakShortOut(BaseModel):
+    """
+    Peak model for single Peak
+    short information
+    """
+    model_config = ConfigDict(from_attributes=True)
+    id: int | None
+    slug: str | None
+    name: str
 
 
 class PeakPhoto(SQLModel, table=True):
@@ -154,6 +210,53 @@ class Route(SQLModel, table=True):
     routepoints: List["RoutePoint"] = Relationship(back_populates="route")
     sections: List["RouteSection"] = Relationship(back_populates="route")
 
+    @computed_field
+    @property
+    def photos_list(self) -> list:
+        return self.photos
+
+    @computed_field
+    @property
+    def routepoints_list(self) -> list:
+        return self.routepoints
+
+    @computed_field
+    @property
+    def sections_list(self) -> list:
+        return self.sections
+
+
+class RouteOut(BaseModel):
+    """
+    Route model
+    """
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    peak_id: Optional[int]
+    peak: Optional[PeakShortOut]
+    name: str
+    slug: str | None
+    description: str | None
+    short_description: str | None
+    recommended_equipment: str | None
+    photo: str | None
+    # map_image
+    difficulty: str | None
+    max_difficulty: str | None
+    author: str | None
+    length: int | None
+    year: int | None
+    height_difference: int | None
+    start_height: int | None
+    descent: str | None
+    # editor
+    changed: datetime
+    ready: bool
+
+    photos_list: list
+    routepoints_list: list
+    sections_list: list
+
 
 class RouteSection(SQLModel, table=True):
     """
@@ -194,3 +297,12 @@ class RoutePoint(SQLModel, table=True):
     point: Optional[GeoPoint] = Relationship(back_populates="routepoints")
     description: str | None = Field(default=None, max_length=128)
 
+    @computed_field
+    @property
+    def latitude(self) -> float:
+        return self.point.latitude
+
+    @computed_field
+    @property
+    def longitude(self) -> float:
+        return self.point.longitude
