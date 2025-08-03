@@ -100,6 +100,11 @@ class RidgeInfoLink(SQLModel, table=True):
     description: str | None = Field(default=None, max_length=128)
 
 
+class RidgeCreate(BaseModel):
+    name: str = Field(max_length=128)
+    description: str
+
+
 class Peak(SQLModel, table=True):
     """
     Peak model

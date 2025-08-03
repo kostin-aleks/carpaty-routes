@@ -2,12 +2,13 @@ from typing import Union
 
 from fastapi import FastAPI, Depends
 from .routers import mountains
+from .routers import users
 # from .database import db
 
 app = FastAPI()
 
 app.include_router(mountains.router)
-
+app.include_router(users.router)
 
 # @app.on_event("startup")
 # async def startup():

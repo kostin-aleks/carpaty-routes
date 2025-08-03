@@ -1,3 +1,5 @@
 fastapi[standard]
 sqlmodel
+passlib[bcrypt]
 pymysql
+python-slugify
