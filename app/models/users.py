@@ -43,6 +43,18 @@ class UserUpdate(BaseModel):
     middle_name: str
 
 
+class UserEmailUpdate(BaseModel):
+    username: str
+    email: EmailStr
+    new_email: EmailStr
+
+
+class UserPasswordUpdate(BaseModel):
+    username: str
+    password: str
+    new_password: str
+
+
 class Token(BaseModel):
     access_token: str
     token_type: str

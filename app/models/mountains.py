@@ -1,10 +1,48 @@
 from datetime import datetime
+import os
 
 from sqlmodel import Field, SQLModel, Relationship
 from sqlalchemy import Column, Text
 from sqlalchemy.types import String, TypeDecorator
 from pydantic import HttpUrl, field_serializer, computed_field, BaseModel, ConfigDict
 from typing import Optional, List
+
+import app.settings as app_settings
+
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+
+
+class MediaRoot:
+    @staticmethod
+    def root():
+        media_root = f'{PROJECT_ROOT}{app_settings.MEDIA_ROOT}'
+        photos_root = f'{media_root}{app_settings.PHOTOS_ROOT}'
+        try:
+            os.makedirs(photos_root, exist_ok=True)
+            print(f"Folder '{photos_root}' created successfully or already existed.")
+        except OSError as e:
+            print(f"Error creating folder '{photos_root}': {e}")
+
+        return photos_root
+
+    @staticmethod
+    def path_to_images(Cls):
+        media_root = MediaRoot.root()
+        _now = datetime.now().strftime("%Y%m%d%H%M")
+        _directory = f'{media_root}/{Cls.__name__.lower()}/{_now}'
+        try:
+            os.makedirs(_directory, exist_ok=True)
+            print(f"Folder '{_directory}' created successfully or already existed.")
+        except OSError as e:
+            print(f"Error creating folder '{_directory}': {e}")
+
+        return _directory
+
+    @staticmethod
+    def db_path_to_images(Cls):
+        _now = datetime.now().strftime("%Y%m%d%H%M")
+        _directory = f'{app_settings.PHOTOS_ROOT}/{Cls.__name__.lower()}/{_now}'
+        return _directory
 
 
 class HttpUrlType(TypeDecorator):
@@ -30,6 +68,11 @@ class GeoPoint(SQLModel, table=True):
 
     peaks: List["Peak"] = Relationship(back_populates="point")
     routepoints: List["RoutePoint"] = Relationship(back_populates="point")
+
+
+class GeoPointCreate(BaseModel):
+    latitude: float = 0
+    longitude: float = 0
 
 
 class Ridge(SQLModel, table=True):
@@ -58,6 +101,19 @@ class Ridge(SQLModel, table=True):
     @property
     def infolinks_list(self) -> list:
         return self.infolinks
+
+    @classmethod
+    def path_to_images(cls):
+        media_root = MediaRoot.root()
+        _now = datetime.now().strftime("%Y%m%d%H%M")
+        _directory = f'{media_root}/{cls.__name__.lower()}/{_now}'
+        try:
+            os.makedirs(_directory, exist_ok=True)
+            print(f"Folder '{_directory}' created successfully or already existed.")
+        except OSError as e:
+            print(f"Error creating folder '{_directory}': {e}")
+
+        return _directory
 
 
 class RidgeOut(BaseModel):
@@ -105,6 +161,12 @@ class RidgeCreate(BaseModel):
     description: str
 
 
+class RidgeInfoLinkCreate(BaseModel):
+    ridge_id: Optional[int] = Field(default=None, foreign_key="ridge.id")
+    link: HttpUrl = Field(max_length=128)
+    description: str | None
+
+
 class Peak(SQLModel, table=True):
     """
     Peak model
@@ -136,6 +198,14 @@ class Peak(SQLModel, table=True):
     @property
     def routes_list(self) -> list:
         return self.routes
+
+    @classmethod
+    def path_to_images(cls):
+        return MediaRoot.path_to_images(cls)
+
+    @classmethod
+    def db_path_to_images(cls):
+        return MediaRoot.db_path_to_images(cls)
 
 
 class PeakOut(BaseModel):
@@ -172,6 +242,14 @@ class PeakShortOut(BaseModel):
     name: str
 
 
+class PeakCreate(BaseModel):
+    name: str = Field(max_length=128)
+    description: str
+    ridge_id: int
+    height: int | None
+    point: Optional[GeoPointCreate] | None
+
+
 class PeakPhoto(SQLModel, table=True):
     """
     Peak Photo model
@@ -198,7 +276,7 @@ class Route(SQLModel, table=True):
     short_description: str | None = Field(default=None, sa_column=Column(Text))
     recommended_equipment: str | None = Field(default=None, sa_column=Column(Text))
     photo: str | None = Field(default=None, unique=True, max_length=128)
-    # map_image
+    map_image: str | None = Field(default=None, unique=True, max_length=128)
     difficulty: str | None = Field(default=None, max_length=3)
     max_difficulty: str | None = Field(default=None, max_length=16)
     author: str | None = Field(default=None, max_length=64)
@@ -230,6 +308,14 @@ class Route(SQLModel, table=True):
     def sections_list(self) -> list:
         return self.sections
 
+    @classmethod
+    def path_to_images(cls):
+        return MediaRoot.path_to_images(cls)
+
+    @classmethod
+    def db_path_to_images(cls):
+        return MediaRoot.db_path_to_images(cls)
+
 
 class RouteOut(BaseModel):
     """
@@ -245,7 +331,7 @@ class RouteOut(BaseModel):
     short_description: str | None
     recommended_equipment: str | None
     photo: str | None
-    # map_image
+    map_image: str | None
     difficulty: str | None
     max_difficulty: str | None
     author: str | None
@@ -263,6 +349,22 @@ class RouteOut(BaseModel):
     sections_list: list
 
 
+class RouteCreate(BaseModel):
+    peak_id: int
+    name: str = Field(max_length=64)
+    description: str | None
+    short_description: str | None
+    recommended_equipment: str | None
+    difficulty: str | None = Field(max_length=3)
+    max_difficulty: str | None = Field(max_length=16)
+    author: str | None = Field(max_length=64)
+    length: int | None
+    year: int | None
+    height_difference: int
+    start_height: int | None
+    descent: str
+
+
 class RouteSection(SQLModel, table=True):
     """
     Route Section model
@@ -276,6 +378,15 @@ class RouteSection(SQLModel, table=True):
     length: int | None = Field(default=None)
     difficulty: str | None = Field(default=None, max_length=32)
     angle: str | None = Field(default=None, max_length=32)
+
+
+class RouteSectionCreate(BaseModel):
+    route_id: int
+    num: int | None
+    description: str | None
+    length: int | None
+    difficulty: str | None = Field(max_length=32)
+    angle: str | None = Field(max_length=32)
 
 
 class RoutePhoto(SQLModel, table=True):
@@ -311,3 +422,9 @@ class RoutePoint(SQLModel, table=True):
     @property
     def longitude(self) -> float:
         return self.point.longitude
+
+
+class RoutePointCreate(BaseModel):
+    route_id: int
+    description: str | None
+    point: Optional[GeoPointCreate] | None

@@ -9,7 +9,8 @@ from passlib.context import CryptContext
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session, select
 from app.models.users import (
-    Token, TokenData, User, UserInDB, APIUser, UserCreate, UserUpdate)
+    Token, TokenData, User, UserInDB, APIUser,
+    UserCreate, UserUpdate, UserEmailUpdate, UserPasswordUpdate)
 from app.database import get_session, db
 
 fake_users_db = {
@@ -175,11 +176,49 @@ async def update_user(
     statement = select(APIUser).where(APIUser.id == id)
     db_user = session.exec(statement).first()
     if not db_user or db_user.username != user.username:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="User not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
     db_user.first_name = user.first_name
     db_user.last_name = user.last_name
     db_user.middle_name = user.middle_name
+    session.add(db_user)
+    session.commit()
+    session.refresh(db_user)
+
+    return(db_user)
+
+
+@router.put("/email/update", response_model=APIUser)
+async def update_user_email(
+        user: UserEmailUpdate,
+        current_user: Annotated[APIUser, Depends(get_current_active_user)],
+        session: Session = Depends(get_session)) -> APIUser:
+    # Check for existing user
+    statement = select(APIUser).where(APIUser.email == user.email)
+    db_user = session.exec(statement).first()
+    if not db_user or db_user.username != user.username:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="User not found")
+
+    db_user.email = user.new_email
+    session.add(db_user)
+    session.commit()
+    session.refresh(db_user)
+
+    return(db_user)
+
+
+@router.put("/password/update", response_model=APIUser)
+async def update_user_password(
+        user: UserPasswordUpdate,
+        current_user: Annotated[APIUser, Depends(get_current_active_user)],
+        session: Session = Depends(get_session)) -> APIUser:
+    # Check for existing user
+    statement = select(APIUser).where(APIUser.username == user.username)
+    db_user = session.exec(statement).first()
+    if not (db_user and verify_password(user.password, db_user.password)):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="User not found")
+
+    db_user.password = get_password_hash(user.new_password)
     session.add(db_user)
     session.commit()
     session.refresh(db_user)
