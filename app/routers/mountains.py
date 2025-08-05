@@ -328,6 +328,24 @@ async def get_routes(session: Session = Depends(get_session)) -> list[Route]:
     return routes
 
 
+@router.get("/routes/search", response_model=list[RouteListItem])
+async def search_route(
+        q: Annotated[str | None, Query(max_length=50)] = None,
+        author: Annotated[str | None, Query(max_length=50)] = None,
+        category: Annotated[str | None, Query(max_length=50)] = None,
+        session: Session = Depends(get_session)) -> list[RouteListItem]:
+    statement = select(Route)
+    if q:
+        statement = statement.where(Route.slug.contains(q) | Route.name.contains(q))
+    if author:
+        statement = statement.where(Route.author.contains(author))
+    if category:
+        statement = statement.where(Route.difficulty.startswith(category))
+    routes = session.exec(statement).all()
+
+    return routes
+
+
 @router.get("/route/{slug}")
 async def get_route(slug: str, session: Session = Depends(get_session)) -> RouteOut:
     statement = select(Route).where(Route.slug == slug)
