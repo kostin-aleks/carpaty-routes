@@ -23,6 +23,8 @@ class APIUser(SQLModel, table=True):
     last_name: str = Field(default=None, max_length=128)
     middle_name: str = Field(default=None, max_length=128)
     password: str = Field(max_length=128)
+    is_admin: bool = Field(default=False)
+    is_editor: bool = Field(default=False)
     is_active: bool = Field(default=False)
     date_joined: datetime = Field(default_factory=datetime.utcnow)
 
@@ -57,6 +59,11 @@ class UserPasswordUpdate(BaseModel):
     username: str
     password: str
     new_password: str
+
+
+class UserPermission(BaseModel):
+    is_admin: bool
+    is_editor: bool
 
 
 class Token(BaseModel):

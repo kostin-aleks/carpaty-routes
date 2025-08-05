@@ -121,6 +121,15 @@ class Ridge(SQLModel, table=True):
 
         return _directory
 
+    @computed_field
+    @property
+    def can_be_deleted(self) -> bool:
+        if self.peaks_list:
+            return False
+        if self.infolinks_list:
+            return False
+        return True
+
 
 class RidgeOut(BaseModel):
     """
@@ -134,6 +143,7 @@ class RidgeOut(BaseModel):
     editor_id: int | None
     active: bool = Field(default=True)
     changed: datetime | None
+    can_be_deleted: bool
 
     peaks_list: list | None = []
     infolinks_list: list | None = []
@@ -147,6 +157,7 @@ class RidgeShortOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     slug: str | None
     name: str = Field(max_length=128)
+    can_be_deleted: bool
 
 
 class RidgeInfoLink(SQLModel, table=True):
@@ -163,7 +174,7 @@ class RidgeInfoLink(SQLModel, table=True):
 
 class RidgeCreate(BaseModel):
     name: str = Field(max_length=128)
-    description: str
+    description: str | None
 
 
 class RidgeInfoLinkCreate(BaseModel):
@@ -213,6 +224,15 @@ class Peak(SQLModel, table=True):
     def db_path_to_images(cls):
         return MediaRoot.db_path_to_images(cls)
 
+    @computed_field
+    @property
+    def can_be_deleted(self) -> bool:
+        if self.photos_list:
+            return False
+        if self.routes_list:
+            return False
+        return True
+
 
 class PeakOut(BaseModel):
     """
@@ -232,6 +252,7 @@ class PeakOut(BaseModel):
     editor_id: int | None
     active: bool
     changed: datetime
+    can_be_deleted: bool
 
     photos_list: list | None = []
     routes_list: list | None = []
@@ -247,6 +268,7 @@ class PeakShortOut(BaseModel):
     slug: str | None
     name: str
     height: int | None
+    can_be_deleted: bool
 
 
 class PeakCreate(BaseModel):
@@ -324,6 +346,17 @@ class Route(SQLModel, table=True):
     def db_path_to_images(cls):
         return MediaRoot.db_path_to_images(cls)
 
+    @computed_field
+    @property
+    def can_be_deleted(self) -> bool:
+        if self.sections_list:
+            return False
+        if self.photos_list:
+            return False
+        if self.routepoints_list:
+            return False
+        return True
+
 
 class RouteOut(BaseModel):
     """
@@ -351,6 +384,7 @@ class RouteOut(BaseModel):
     editor_id: int | None
     changed: datetime
     ready: bool
+    can_be_deleted: bool
 
     photos_list: list
     routepoints_list: list
@@ -384,6 +418,7 @@ class RouteListItem(BaseModel):
     name: str
     difficulty: str | None = Field(max_length=3)
     max_difficulty: str | None = Field(max_length=16)
+    can_be_deleted: bool
 
 
 class RouteSection(SQLModel, table=True):

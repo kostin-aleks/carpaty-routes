@@ -9,7 +9,7 @@ from passlib.context import CryptContext
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session, select
 from app.models.users import (
-    Token, TokenData, User, UserInDB, APIUser,
+    Token, TokenData, User, UserInDB, APIUser, UserPermission,
     UserCreate, UserUpdate, UserEmailUpdate, UserPasswordUpdate)
 from app.database import get_session, db
 
@@ -132,12 +132,6 @@ async def read_users_me(
     return current_user
 
 
-@router.get("/me/items/")
-async def read_own_items(
-        current_user: Annotated[APIUser, Depends(get_current_active_user)]):
-    return [{"item_id": "Foo", "owner": current_user.username}]
-
-
 @router.post("/register/", response_model=APIUser)
 async def register_user(user: UserCreate, session: Session = Depends(get_session)) -> APIUser:
     # Check for existing user
@@ -158,7 +152,7 @@ async def register_user(user: UserCreate, session: Session = Depends(get_session
         password=hashed_password,
         first_name=user.first_name,
         last_name=user.last_name,
-        middle_name=user.middle_name
+        middle_name=user.middle_name,
     )
 
     session.add(db_user)
@@ -181,6 +175,30 @@ async def update_user(
     db_user.first_name = user.first_name
     db_user.last_name = user.last_name
     db_user.middle_name = user.middle_name
+    session.add(db_user)
+    session.commit()
+    session.refresh(db_user)
+
+    return(db_user)
+
+
+@router.put("/set/permissions/{id}", response_model=APIUser)
+async def set_user_permissions(
+        id: int, data: UserPermission,
+        current_user: Annotated[APIUser, Depends(get_current_active_user)],
+        session: Session = Depends(get_session)) -> APIUser:
+    # Check for existing user
+    statement = select(APIUser).where(APIUser.id == id)
+    db_user = session.exec(statement).first()
+    if not db_user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+    # check permission
+    if not current_user.is_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="No permission for this action")
+
+    db_user.is_admin = data.is_admin
+    db_user.is_editor = data.is_editor
     session.add(db_user)
     session.commit()
     session.refresh(db_user)
