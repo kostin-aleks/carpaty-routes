@@ -8,6 +8,7 @@ from pydantic import HttpUrl, field_serializer, computed_field, BaseModel, Confi
 from typing import Optional, List
 
 import app.settings as app_settings
+from app.models.users import APIUser
 
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
@@ -70,6 +71,11 @@ class GeoPoint(SQLModel, table=True):
     routepoints: List["RoutePoint"] = Relationship(back_populates="point")
 
 
+class ResponceStatus(BaseModel):
+    message: str = ''
+    status: bool = True
+
+
 class GeoPointCreate(BaseModel):
     latitude: float = 0
     longitude: float = 0
@@ -84,8 +90,8 @@ class Ridge(SQLModel, table=True):
     slug: str | None = Field(default=None, unique=True, max_length=128)
     name: str = Field(max_length=128)
     description: str | None = Field(default=None, sa_column=Column(Text))
-    # editor = models.ForeignKey(
-    #    get_user_model(), on_delete=models.PROTECT, verbose_name=_("editor"), null=True)
+    editor_id: Optional[int] = Field(default=None, foreign_key="api_user.id")
+    editor: Optional[APIUser] = Relationship()
     active: bool = Field(default=True)
     changed: datetime = Field(default_factory=datetime.utcnow)
 
@@ -125,8 +131,7 @@ class RidgeOut(BaseModel):
     slug: str | None
     name: str = Field(max_length=128)
     description: str | None
-    # editor = models.ForeignKey(
-    #    get_user_model(), on_delete=models.PROTECT, verbose_name=_("editor"), null=True)
+    editor_id: int | None
     active: bool = Field(default=True)
     changed: datetime | None
 
@@ -182,7 +187,8 @@ class Peak(SQLModel, table=True):
     point_id: Optional[int] = Field(default=None, foreign_key="geopoint.id")
     point: Optional[GeoPoint] = Relationship(back_populates="peaks")
     photo: str | None = Field(default=None, unique=True, max_length=128)
-    # editor
+    editor_id: Optional[int] = Field(default=None, foreign_key="api_user.id")
+    editor: Optional[APIUser] = Relationship()
     active: bool = Field(default=True)
     changed: datetime = Field(default_factory=datetime.utcnow)
 
@@ -223,7 +229,7 @@ class PeakOut(BaseModel):
     # point_id: Optional[int]
     point: Optional[GeoPoint]
     photo: str | None
-    # editor
+    editor_id: int | None
     active: bool
     changed: datetime
 
@@ -240,6 +246,7 @@ class PeakShortOut(BaseModel):
     id: int | None
     slug: str | None
     name: str
+    height: int | None
 
 
 class PeakCreate(BaseModel):
@@ -285,7 +292,8 @@ class Route(SQLModel, table=True):
     height_difference: int | None = Field(default=None)
     start_height: int | None = Field(default=None)
     descent: str | None = Field(default=None, sa_column=Column(Text))
-    # editor
+    editor_id: Optional[int] = Field(default=None, foreign_key="api_user.id")
+    editor: Optional[APIUser] = Relationship()
     changed: datetime = Field(default_factory=datetime.utcnow)
     ready: bool = Field(default=False)
 
@@ -340,7 +348,7 @@ class RouteOut(BaseModel):
     height_difference: int | None
     start_height: int | None
     descent: str | None
-    # editor
+    editor_id: int | None
     changed: datetime
     ready: bool
 
@@ -363,6 +371,19 @@ class RouteCreate(BaseModel):
     height_difference: int
     start_height: int | None
     descent: str
+
+
+class RouteListItem(BaseModel):
+    """
+    Route model for single Route
+    short information
+    """
+    model_config = ConfigDict(from_attributes=True)
+    id: int | None
+    slug: str | None
+    name: str
+    difficulty: str | None = Field(max_length=3)
+    max_difficulty: str | None = Field(max_length=16)
 
 
 class RouteSection(SQLModel, table=True):

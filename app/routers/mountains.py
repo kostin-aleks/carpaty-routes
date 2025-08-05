@@ -1,13 +1,13 @@
 from typing import Annotated
 from slugify import slugify
 
-from fastapi import APIRouter, Depends, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, Query
 from sqlmodel import Session, select
 from app.models.mountains import (
-    GeoPoint, Ridge, RidgeOut, RidgeCreate, RidgeInfoLink,
-    RidgeInfoLinkCreate, Peak, PeakOut, PeakCreate, PeakPhoto,
-    Route, RouteOut, RouteCreate, RoutePoint, RoutePhoto,
-    RouteSection, RouteSectionCreate, RoutePointCreate)
+    GeoPoint, Ridge, RidgeOut, RidgeCreate, RidgeInfoLink, RidgeInfoLinkCreate,
+    Peak, PeakOut, PeakCreate, PeakPhoto, PeakShortOut,
+    Route, RouteOut, RouteCreate, RoutePoint, RoutePhoto, RouteListItem,
+    RouteSection, RouteSectionCreate, RoutePointCreate, ResponceStatus)
 from app.models.users import APIUser
 from app.database import get_session
 from app.routers.users import get_current_active_user
@@ -19,6 +19,20 @@ router = APIRouter(
     # dependencies=[Depends(get_token_header)],
     responses={404: {"description": "Not found"}},
 )
+
+
+def unique_slugify(Cls, text):
+    slug = slugify(text)
+    for k in range(100):
+        _slug = slug
+        if k:
+            _slug = f'{slug}-{k}'
+        statement = select(Cls).where(Cls.slug == _slug)
+        item = session.exec(statement).first()
+        if not item:
+            slug = _slug
+            break
+    return slug
 
 
 @router.get("/ridges")
@@ -35,7 +49,8 @@ async def add_ridge(
     db_ridge = Ridge(
         name=ridge.name,
         description=ridge.description,
-        slug=slugify(ridge.name)
+        editor_id=current_user.id,
+        slug=unique_slugify(Ridge, ridge.name)
     )
 
     session.add(db_ridge)
@@ -78,21 +93,64 @@ async def add_ridge_infolink(
     return db_link
 
 
+@router.delete("/ridge/{slug}")
+async def delete_ridge(
+        slug: str, current_user: Annotated[APIUser, Depends(get_current_active_user)],
+        session: Session = Depends(get_session)) -> ResponceStatus:
+    statement = select(Ridge).where(Ridge.slug == slug)
+    ridge = session.exec(statement).first()
+    if ridge is None:
+        raise HTTPException(status_code=404, detail="Ridge not found")
+    session.delete(ridge)
+    session.commit()
+
+    return ResponceStatus(status=True, message=f'Ridge {slug} deleted succesfully')
+
+
+@router.delete("/ridge/link/{id}")
+async def delete_ridge_link(
+        id: int, current_user: Annotated[APIUser, Depends(get_current_active_user)],
+        session: Session = Depends(get_session)) -> ResponceStatus:
+    statement = select(RidgeInfoLink).where(RidgeInfoLink.id == id)
+    link = session.exec(statement).first()
+    if link is None:
+        raise HTTPException(status_code=404, detail="Ridge info link not found")
+    session.delete(link)
+    session.commit()
+
+    return ResponceStatus(status=True, message=f'Ridge link with id={id} deleted succesfully')
+
+
+@router.get("/ridge/peaks/{slug}", response_model=list[PeakShortOut])
+async def get_ridge_peaks(slug: str, session: Session = Depends(get_session)) -> list[PeakShortOut]:
+    statement = select(Ridge).where(Ridge.slug == slug)
+    ridge = session.exec(statement).first()
+    if ridge is None:
+        raise HTTPException(status_code=404, detail="Ridge not found")
+
+    statement = select(Peak).where(Peak.ridge == ridge)
+    peaks = session.exec(statement).all()
+    peaks = [PeakShortOut.from_orm(peak) for peak in peaks]
+    print(peaks)
+    return peaks
+
+
 @router.get("/peaks")
 async def get_peaks(session: Session = Depends(get_session)) -> list[Peak]:
     peaks = session.exec(select(Peak)).all()
     return peaks
 
 
-@router.get("/peak/{slug}")
-async def get_peak(slug: str, session: Session = Depends(get_session)) -> PeakOut:
-    statement = select(Peak).where(Peak.slug == slug)
-    peak = session.exec(statement).first()
-    if peak is None:
-        raise HTTPException(status_code=404, detail="Peak not found")
-    peak_out = PeakOut.from_orm(peak)
+@router.get("/peaks/search", response_model=list[PeakOut])
+async def search_peak(
+        q: Annotated[str | None, Query(max_length=50)] = None,
+        session: Session = Depends(get_session)) -> list[PeakOut]:
+    statement = select(Peak)
+    if q:
+        statement = statement.where(Peak.slug.contains(q) | Peak.name.contains(q))
+    peaks = session.exec(statement).all()
 
-    return peak_out
+    return peaks
 
 
 @router.post("/peaks/add", response_model=Peak)
@@ -114,10 +172,11 @@ async def add_peak(
     db_peak = Peak(
         name=peak.name,
         description=peak.description,
-        slug=slugify(peak.name),
+        slug=unique_slugify(Peak, peak.name),
         ridge_id=peak.ridge_id,
         height=peak.height,
-        point_id=point_id
+        point_id=point_id,
+        editor_id=current_user.id
     )
 
     session.add(db_peak)
@@ -223,6 +282,46 @@ async def update_peak_photo(
         return {'message': e.args, 'success': False}
 
 
+@router.delete("/peak/{slug}")
+async def delete_peak(
+        slug: str, current_user: Annotated[APIUser, Depends(get_current_active_user)],
+        session: Session = Depends(get_session)) -> ResponceStatus:
+    statement = select(Peak).where(Peak.slug == slug)
+    peak = session.exec(statement).first()
+    if peak is None:
+        raise HTTPException(status_code=404, detail="Peak not found")
+    session.delete(peak)
+    session.commit()
+
+    return ResponceStatus(status=True, message=f'Peak {slug} deleted succesfully')
+
+
+@router.delete("/peak/photo/{id}")
+async def delete_peak_photo(
+        id: int, current_user: Annotated[APIUser, Depends(get_current_active_user)],
+        session: Session = Depends(get_session)) -> ResponceStatus:
+    statement = select(PeakPhoto).where(PeakPhoto.id == id)
+    photo = session.exec(statement).first()
+    if photo is None:
+        raise HTTPException(status_code=404, detail="Peak photo not found")
+    session.delete(photo)
+    session.commit()
+
+    return ResponceStatus(status=True, message=f'Peak photo with id={id} deleted succesfully')
+
+
+@router.get("/peak/routes/{slug}", response_model=list[RouteListItem])
+async def get_peak_routes(slug: str, session: Session = Depends(get_session)) -> list[RouteListItem]:
+    statement = select(Peak).where(Peak.slug == slug)
+    peak = session.exec(statement).first()
+    if peak is None:
+        raise HTTPException(status_code=404, detail="Peak not found")
+
+    statement = select(Route).where(Route.peak == peak)
+    routers = session.exec(statement).all()
+    return routers
+
+
 @router.get("/routes")
 async def get_routes(session: Session = Depends(get_session)) -> list[Route]:
     routes = session.exec(select(Route)).all()
@@ -251,7 +350,7 @@ async def add_route(
         description=route.description,
         short_description=route.short_description,
         recommended_equipment=route.recommended_equipment,
-        slug=slugify(route.name),
+        slug=unique_slugify(Route, route.name),
         peak_id=route.peak_id,
         difficulty=route.difficulty,
         max_difficulty=route.max_difficulty,
@@ -260,7 +359,8 @@ async def add_route(
         year=route.year,
         height_difference=route.height_difference,
         start_height=route.start_height,
-        descent=route.descent
+        descent=route.descent,
+        editor_id=current_user.id,
     )
 
     session.add(db_route)
@@ -462,3 +562,46 @@ async def update_route_section(
     session.refresh(db_section)
 
     return db_section
+
+
+@router.delete("/route/{slug}")
+async def delete_route(
+        slug: str, current_user: Annotated[APIUser, Depends(get_current_active_user)],
+        session: Session = Depends(get_session)) -> ResponceStatus:
+    statement = select(Route).where(Route.slug == slug)
+    route = session.exec(statement).first()
+    if route is None:
+        raise HTTPException(status_code=404, detail="Route not found")
+    session.delete(route)
+    session.commit()
+
+    return ResponceStatus(status=True, message=f'Route {slug} deleted succesfully')
+
+
+@router.delete("/route/point/{id}")
+async def delete_route_point(
+        id: int, current_user: Annotated[APIUser, Depends(get_current_active_user)],
+        session: Session = Depends(get_session)) -> ResponceStatus:
+    statement = select(RoutePoint).where(RoutePoint.id == id)
+    point = session.exec(statement).first()
+    if point is None:
+        raise HTTPException(status_code=404, detail="Route point not found")
+    session.delete(point)
+    session.commit()
+
+    return ResponceStatus(status=True, message=f'Route point with id={id} deleted succesfully')
+
+
+@router.delete("/route/section/{id}")
+async def delete_route_section(
+        id: int, current_user: Annotated[APIUser, Depends(get_current_active_user)],
+        session: Session = Depends(get_session)) -> ResponceStatus:
+    statement = select(RouteSection).where(RouteSection.id == id)
+    section = session.exec(statement).first()
+    if section is None:
+        raise HTTPException(status_code=404, detail="Route section not found")
+    session.delete(section)
+    session.commit()
+
+    return ResponceStatus(status=True, message=f'Route section with id={id} deleted succesfully')
+

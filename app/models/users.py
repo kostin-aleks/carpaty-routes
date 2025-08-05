@@ -26,6 +26,10 @@ class APIUser(SQLModel, table=True):
     is_active: bool = Field(default=False)
     date_joined: datetime = Field(default_factory=datetime.utcnow)
 
+#     ridges: List["Ridge"] = Relationship(back_populates="user")
+#     peaks: List["Peak"] = Relationship(back_populates="user")
+#     routes: List["Route"] = Relationship(back_populates="user")
+
 
 class UserCreate(BaseModel):
     username: str
