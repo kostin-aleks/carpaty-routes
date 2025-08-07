@@ -93,7 +93,7 @@ async def get_ridge(
     ridge = session.exec(statement).first()
     if ridge is None:
         raise HTTPException(status_code=404, detail="Ridge not found")
-    ridge_out = RidgeOut.from_orm(ridge)
+    ridge_out = RidgeOut.model_validate(ridge)
 
     return ridge_out
 
@@ -167,7 +167,7 @@ async def get_ridge_peaks(slug: str, session: Session = Depends(get_session)) ->
 
     statement = select(Peak).where(Peak.ridge == ridge)
     peaks = session.exec(statement).all()
-    peaks = [PeakShortOut.from_orm(peak) for peak in peaks]
+    peaks = [PeakShortOut.model_validate(peak) for peak in peaks]
     print(peaks)
     return peaks
 
@@ -188,6 +188,18 @@ async def search_peak(
     peaks = session.exec(statement).all()
 
     return peaks
+
+
+@router.get("/peak/{slug}", response_model=PeakOut)
+async def get_peak(
+        slug: str, session: Session = Depends(get_session)) -> PeakOut:
+    statement = select(Peak).where(Peak.slug == slug)
+    peak = session.exec(statement).first()
+    if peak is None:
+        raise HTTPException(status_code=404, detail="Peak not found")
+    # peak_out = RidgeOut.model_validate(ridge)
+
+    return peak
 
 
 @router.post("/peaks/add", response_model=Peak)
@@ -407,7 +419,7 @@ async def get_route(slug: str, session: Session = Depends(get_session)) -> Route
     route = session.exec(statement).first()
     if route is None:
         raise HTTPException(status_code=404, detail="Route '{slug}' not found")
-    route_out = RouteOut.from_orm(route)
+    route_out = RouteOut.model_validate(route)
 
     return route_out
 
