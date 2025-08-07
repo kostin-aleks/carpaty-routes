@@ -1,5 +1,7 @@
 fastapi[standard]
+fastapi_amis_admin
 sqlmodel
 passlib[bcrypt]
+pydantic_settings
 pymysql
 python-slugify
