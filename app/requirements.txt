@@ -1,4 +1,5 @@
 fastapi[standard]
+fastadmin[fastapi,sqlalchemy]
 sqlmodel
 passlib[bcrypt]
 pymysql
