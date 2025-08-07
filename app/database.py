@@ -1,10 +1,7 @@
 from sqlmodel import create_engine
-# from starlette.config import Config
 from sqlmodel import Session
 
 from .settings import config
-
-# config = Config('.env')
 
 # Database configurations
 _user = config('DB_USER', cast=str)
