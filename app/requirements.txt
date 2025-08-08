@@ -3,3 +3,4 @@ sqlmodel
 passlib[bcrypt]
 pymysql
 python-slugify
+sqladmin[full]
