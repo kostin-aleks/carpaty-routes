@@ -165,3 +165,5 @@ data/
 /.run/Mapster_backend.run.xml
 /Using mail report.txt
 /mapster-email 2.zip
+
+alembic.ini
