@@ -34,7 +34,9 @@ def the_token():
 
 
 def test_read_me(the_token):
-    response = client.get("/users/me", headers={'Authorization': f"Bearer {the_token['access_token']}"})
+    response = client.get(
+        "/users/me",
+        headers={'Authorization': f"Bearer {the_token['access_token']}"})
     assert response.status_code == 200
     data = response.json()
 
@@ -125,7 +127,7 @@ def test_update_email(the_user, the_token):
         'new_email': _buffer,
     }
     response = client.put(
-        f"/users/email/update",
+        "/users/email/update",
         json=post_data,
         headers={'Authorization': f"Bearer {the_token['access_token']}"})
     assert response.status_code == 200
@@ -157,7 +159,7 @@ def test_update_password(the_user, the_token):
         'new_password': _buffer,
     }
     response = client.put(
-        f"/users/password/update",
+        "/users/password/update",
         json=post_data,
         headers={'Authorization': f"Bearer {the_token['access_token']}"})
     assert response.status_code == 200

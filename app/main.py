@@ -1,7 +1,6 @@
 from sqladmin import Admin
-from typing import Union
 
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI
 
 from .database import db
 from .routers import mountains

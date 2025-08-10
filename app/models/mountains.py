@@ -4,7 +4,7 @@ import os
 from sqlmodel import Field, SQLModel, Relationship
 from sqlalchemy import Column, Text
 from sqlalchemy.types import String, TypeDecorator
-from pydantic import HttpUrl, field_serializer, computed_field, BaseModel, ConfigDict
+from pydantic import HttpUrl, computed_field, BaseModel, ConfigDict
 from typing import Optional, List
 
 import app.settings as app_settings
@@ -168,7 +168,9 @@ class RidgeInfoLink(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     ridge_id: Optional[int] = Field(default=None, foreign_key="ridge.id")
     ridge: Optional[Ridge] = Relationship(back_populates="infolinks")
-    link: HttpUrl = Field(index=True, unique=True, nullable=False, sa_type=HttpUrlType, max_length=128)
+    link: HttpUrl = Field(
+        index=True, unique=True, nullable=False,
+        sa_type=HttpUrlType, max_length=128)
     description: str | None = Field(default=None, max_length=128)
 
 

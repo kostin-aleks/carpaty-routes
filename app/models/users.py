@@ -1,17 +1,9 @@
 from datetime import datetime
 
+from pydantic import (BaseModel, EmailStr)
+from sqlmodel import Field, SQLModel
 
-from fastapi import Depends, FastAPI, HTTPException, status
-
-
-from pydantic import (
-    HttpUrl, field_serializer, computed_field, BaseModel, ConfigDict, EmailStr)
-from sqlmodel import Field, SQLModel, Relationship
-from sqlalchemy import Column, Text
-from sqlalchemy.types import String, TypeDecorator
-
-
-from typing import Optional, List
+from typing import Optional
 
 
 class APIUser(SQLModel, table=True):
@@ -84,4 +76,3 @@ class User(BaseModel):
 
 class UserInDB(User):
     hashed_password: str
-

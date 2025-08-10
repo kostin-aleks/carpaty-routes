@@ -1,4 +1,4 @@
-from sqladmin import Admin, ModelView
+from sqladmin import ModelView
 from app.models.users import APIUser
 from app.models.mountains import Ridge, Peak, Route
 

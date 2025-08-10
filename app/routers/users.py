@@ -9,7 +9,7 @@ from passlib.context import CryptContext
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session, select
 from app.models.users import (
-    Token, TokenData, User, UserInDB, APIUser, UserPermission,
+    Token, TokenData, APIUser, UserPermission,
     UserCreate, UserUpdate, UserEmailUpdate, UserPasswordUpdate)
 from app.database import get_session, db
 
@@ -128,12 +128,16 @@ async def register_user(user: UserCreate, session: Session = Depends(get_session
     statement = select(APIUser).where(APIUser.username == user.username)
     db_user = session.exec(statement).first()
     if db_user:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Username already registered")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Username already registered")
 
     statement = select(APIUser).where(APIUser.email == user.email)
     db_user = session.exec(statement).first()
     if db_user:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email already registered")
 
     hashed_password = get_password_hash(user.password)
     db_user = APIUser(

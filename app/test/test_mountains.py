@@ -1,13 +1,6 @@
-import json
-import pytest
 from fastapi.testclient import TestClient
-from sqlmodel import Session, select
 
-from app.database import db
 from app.main import app
-from app.models.users import APIUser
-from app.routers.users import verify_password
-from app.settings import config
 
 RIDGE_SLUG = 'chernogora'
 PEAK_SLUG = 'bliznitsa'
@@ -91,7 +84,7 @@ def test_read_peak():
 
 
 def test_read_routes():
-    response = client.get(f"/mountains/routes")
+    response = client.get("/mountains/routes")
     assert response.status_code == 200
     data = response.json()
 
@@ -123,41 +116,3 @@ def test_read_route():
     assert data['slug']
     assert data['peak_id']
     assert data['sections_list']
-
-
-# def test_put_user(the_user, the_token):
-#     _buffer = the_user.middle_name
-#     _test = 'Middle'
-#     post_data = {
-#         'username': the_user.username,
-#         'middle_name': _test,
-#         'first_name': the_user.first_name,
-#         'last_name': the_user.last_name,
-#     }
-#     response = client.put(
-#         f"/users/update/{the_user.id}",
-#         json=post_data,
-#         headers={'Authorization': f"Bearer {the_token['access_token']}"})
-#     assert response.status_code == 200
-#     data = response.json()
-#
-#     assert data['middle_name'] == _test
-#     assert data['username'] == the_user.username
-#
-#     post_data = {
-#         'username': the_user.username,
-#         'middle_name': _buffer,
-#         'first_name': the_user.first_name,
-#         'last_name': the_user.last_name,
-#     }
-#     response = client.put(
-#         f"/users/update/{the_user.id}",
-#         json=post_data,
-#         headers={'Authorization': f"Bearer {the_token['access_token']}"})
-#     assert response.status_code == 200
-#     data = response.json()
-#
-#     assert data['middle_name'] == ''
-#     assert data['username'] == the_user.username
-#
-

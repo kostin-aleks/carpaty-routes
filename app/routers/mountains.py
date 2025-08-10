@@ -150,9 +150,11 @@ async def delete_ridge_link(
     link = session.exec(statement).first()
     if link is None:
         raise HTTPException(status_code=404, detail="Ridge info link not found")
-    if not (current_user.is_admin or (current_user.is_editor and link.ridge.editor == current_user)):
+    if not (current_user.is_admin or
+            (current_user.is_editor and link.ridge.editor == current_user)):
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="No permission for this action")
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="No permission for this action")
     session.delete(link)
     session.commit()
 
@@ -353,9 +355,11 @@ async def delete_peak(
     peak = session.exec(statement).first()
     if peak is None:
         raise HTTPException(status_code=404, detail="Peak not found")
-    if not (current_user.is_admin or (current_user.is_editor and peak.editor == current_user)):
+    if not (current_user.is_admin or
+            (current_user.is_editor and peak.editor == current_user)):
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="No permission for this action")
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="No permission for this action")
     session.delete(peak)
     session.commit()
 
@@ -370,17 +374,22 @@ async def delete_peak_photo(
     photo = session.exec(statement).first()
     if photo is None:
         raise HTTPException(status_code=404, detail="Peak photo not found")
-    if not (current_user.is_admin or (current_user.is_editor and photo.peak.editor == current_user)):
+    if not (current_user.is_admin or
+            (current_user.is_editor and photo.peak.editor == current_user)):
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="No permission for this action")
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="No permission for this action")
     session.delete(photo)
     session.commit()
 
-    return ResponceStatus(status=True, message=f'Peak photo with id={id} deleted succesfully')
+    return ResponceStatus(
+        status=True, message=f'Peak photo with id={id} deleted succesfully')
 
 
 @router.get("/peak/routes/{slug}", response_model=list[RouteListItem])
-async def get_peak_routes(slug: str, session: Session = Depends(get_session)) -> list[RouteListItem]:
+async def get_peak_routes(
+        slug: str,
+        session: Session = Depends(get_session)) -> list[RouteListItem]:
     statement = select(Peak).where(Peak.slug == slug)
     peak = session.exec(statement).first()
     if peak is None:
@@ -657,9 +666,11 @@ async def update_route_section(
     db_section = session.exec(statement).first()
     if not db_section:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Route section not found")
-    if not (current_user.is_admin or (current_user.is_editor and db_section.route.editor == current_user)):
+    if not (current_user.is_admin or
+            (current_user.is_editor and db_section.route.editor == current_user)):
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="No permission for this action")
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="No permission for this action")
 
     section_dict = section.model_dump(exclude_unset=True)
     for key, value in section_dict.items():
@@ -680,9 +691,11 @@ async def delete_route(
     route = session.exec(statement).first()
     if route is None:
         raise HTTPException(status_code=404, detail="Route not found")
-    if not (current_user.is_admin or (current_user.is_editor and route.editor == current_user)):
+    if not (current_user.is_admin or
+            (current_user.is_editor and route.editor == current_user)):
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="No permission for this action")
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="No permission for this action")
 
     session.delete(route)
     session.commit()
@@ -698,9 +711,11 @@ async def delete_route_point(
     point = session.exec(statement).first()
     if point is None:
         raise HTTPException(status_code=404, detail="Route point not found")
-    if not (current_user.is_admin or (current_user.is_editor and point.route.editor == current_user)):
+    if not (current_user.is_admin or
+            (current_user.is_editor and point.route.editor == current_user)):
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="No permission for this action")
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="No permission for this action")
 
     session.delete(point)
     session.commit()
@@ -716,11 +731,12 @@ async def delete_route_section(
     section = session.exec(statement).first()
     if section is None:
         raise HTTPException(status_code=404, detail="Route section not found")
-    if not (current_user.is_admin or (current_user.is_editor and section.route.editor == current_user)):
+    if not (current_user.is_admin or
+            (current_user.is_editor and section.route.editor == current_user)):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN, detail="No permission for this action")
     session.delete(section)
     session.commit()
 
-    return ResponceStatus(status=True, message=f'Route section with id={id} deleted succesfully')
-
+    return ResponceStatus(
+        status=True, message=f'Route section with id={id} deleted succesfully')

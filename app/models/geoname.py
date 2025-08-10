@@ -1,17 +1,6 @@
 from datetime import datetime
 
-
-from fastapi import Depends, FastAPI, HTTPException, status
-
-
-from pydantic import (
-    HttpUrl, field_serializer, computed_field, BaseModel, ConfigDict, EmailStr)
-from sqlmodel import Field, SQLModel, Relationship
-from sqlalchemy import Column, Text
-from sqlalchemy.types import String, TypeDecorator
-
-
-from typing import Optional, List
+from sqlmodel import Field, SQLModel
 
 
 class GeoCity(SQLModel, table=True):
