@@ -162,9 +162,10 @@ async def update_user(
     if not db_user or db_user.username != user.username:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
-    db_user.first_name = user.first_name
-    db_user.last_name = user.last_name
-    db_user.middle_name = user.middle_name
+    user_dict = user.model_dump(exclude_unset=True)
+    for key, value in user_dict.items():
+        setattr(db_user, key, value)
+
     session.add(db_user)
     session.commit()
     session.refresh(db_user)
@@ -187,8 +188,10 @@ async def set_user_permissions(
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN, detail="No permission for this action")
 
-    db_user.is_admin = data.is_admin
-    db_user.is_editor = data.is_editor
+    data_dict = data.model_dump(exclude_unset=True)
+    for key, value in data_dict.items():
+        setattr(db_user, key, value)
+
     session.add(db_user)
     session.commit()
     session.refresh(db_user)

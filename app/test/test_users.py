@@ -49,8 +49,6 @@ def test_put_user(the_user, the_token):
     post_data = {
         'username': the_user.username,
         'middle_name': _test,
-        'first_name': the_user.first_name,
-        'last_name': the_user.last_name,
     }
     response = client.put(
         f"/users/update/{the_user.id}",
@@ -65,8 +63,6 @@ def test_put_user(the_user, the_token):
     post_data = {
         'username': the_user.username,
         'middle_name': _buffer,
-        'first_name': the_user.first_name,
-        'last_name': the_user.last_name,
     }
     response = client.put(
         f"/users/update/{the_user.id}",
@@ -82,7 +78,6 @@ def test_put_user(the_user, the_token):
 def test_set_user_permission(the_user, the_token):
     _buffer = the_user.is_editor
     post_data = {
-        'is_admin': the_user.is_admin,
         'is_editor': True,
     }
     response = client.put(
@@ -95,7 +90,6 @@ def test_set_user_permission(the_user, the_token):
     assert data['is_editor']
 
     post_data = {
-        'is_admin': the_user.is_admin,
         'is_editor': _buffer,
     }
     response = client.put(

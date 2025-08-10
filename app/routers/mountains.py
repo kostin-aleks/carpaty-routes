@@ -76,8 +76,9 @@ async def update_ridge(
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN, detail="No permission for this action")
 
-    db_ridge.name = ridge.name
-    db_ridge.description = ridge.description
+    ridge_dict = ridge.model_dump(exclude_unset=True)
+    for key, value in ridge_dict.items():
+        setattr(db_ridge, key, value)
 
     session.add(db_ridge)
     session.commit()
@@ -286,10 +287,11 @@ async def update_peak(
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN, detail="No permission for this action")
 
-    db_peak.name = peak.name
-    db_peak.description = peak.description
-    db_peak.ridge_id = peak.ridge_id
-    db_peak.height = peak.height
+    peak_dict = peak.model_dump(exclude_unset=True)
+    for key, value in peak_dict.items():
+        if key == 'point_id':
+            continue
+        setattr(db_peak, key, value)
 
     point_id = None
     if peak.point:
@@ -635,18 +637,9 @@ async def update_route(
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN, detail="No permission for this action")
 
-    db_route.name = route.name
-    db_route.description = route.description
-    db_route.short_description = route.short_description
-    db_route.recommended_equipment = route.recommended_equipment
-    db_route.difficulty = route.difficulty
-    db_route.max_difficulty = route.max_difficulty
-    db_route.author = route.author
-    db_route.length = route.length
-    db_route.year = route.year
-    db_route.height_difference = route.height_difference
-    db_route.start_height = route.start_height
-    b_route.descent = route.descent
+    route_dict = route.model_dump(exclude_unset=True)
+    for key, value in route_dict.items():
+        setattr(db_route, key, value)
 
     session.add(db_route)
     session.commit()
@@ -668,11 +661,9 @@ async def update_route_section(
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN, detail="No permission for this action")
 
-    db_section.num = section.num
-    db_section.description = section.description
-    db_section.length = section.length
-    db_section.difficulty = section.difficulty
-    db_section.angle = section.angle
+    section_dict = section.model_dump(exclude_unset=True)
+    for key, value in section_dict.items():
+        setattr(db_section, key, value)
 
     session.add(db_section)
     session.commit()
