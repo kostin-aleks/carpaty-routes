@@ -19,9 +19,9 @@ class APIUser(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     username: str = Field(max_length=128, unique=True, index=True)
     email: str = Field(max_length=255, unique=True, index=True)
-    first_name: str = Field(default=None, max_length=128)
-    last_name: str = Field(default=None, max_length=128)
-    middle_name: str = Field(default=None, max_length=128)
+    first_name: str | None = Field(default=None, max_length=128)
+    last_name: str | None = Field(default=None, max_length=128)
+    middle_name: str | None = Field(default=None, max_length=128)
     password: str = Field(max_length=128)
     is_admin: bool = Field(default=False)
     is_editor: bool = Field(default=False)
@@ -37,16 +37,16 @@ class UserCreate(BaseModel):
     username: str
     email: EmailStr
     password: str
-    first_name: str
-    last_name: str
-    middle_name: str
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    middle_name: Optional[str] = None
 
 
 class UserUpdate(BaseModel):
     username: str
-    first_name: str
-    last_name: str
-    middle_name: str
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    middle_name: Optional[str] = None
 
 
 class UserEmailUpdate(BaseModel):
@@ -62,7 +62,7 @@ class UserPasswordUpdate(BaseModel):
 
 
 class UserPermission(BaseModel):
-    is_admin: bool
+    is_admin: Optional[bool] = False
     is_editor: bool
 
 

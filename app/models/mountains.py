@@ -174,13 +174,13 @@ class RidgeInfoLink(SQLModel, table=True):
 
 class RidgeCreate(BaseModel):
     name: str = Field(max_length=128)
-    description: str | None
+    description: Optional[str] = None
 
 
 class RidgeInfoLinkCreate(BaseModel):
     ridge_id: Optional[int] = Field(default=None, foreign_key="ridge.id")
     link: HttpUrl = Field(max_length=128)
-    description: str | None
+    description: Optional[str] = None
 
 
 class Peak(SQLModel, table=True):
@@ -273,10 +273,10 @@ class PeakShortOut(BaseModel):
 
 class PeakCreate(BaseModel):
     name: str = Field(max_length=128)
-    description: str
+    description: Optional[str] = None
     ridge_id: int
-    height: int | None
-    point: Optional[GeoPointCreate] | None
+    height: Optional[int] = None
+    point: Optional[GeoPointCreate] = None
 
 
 class PeakPhoto(SQLModel, table=True):
@@ -394,17 +394,17 @@ class RouteOut(BaseModel):
 class RouteCreate(BaseModel):
     peak_id: int
     name: str = Field(max_length=64)
-    description: str | None
-    short_description: str | None
-    recommended_equipment: str | None
-    difficulty: str | None = Field(max_length=3)
-    max_difficulty: str | None = Field(max_length=16)
-    author: str | None = Field(max_length=64)
-    length: int | None
-    year: int | None
-    height_difference: int
-    start_height: int | None
-    descent: str
+    description: Optional[str] = None
+    short_description: Optional[str] = None
+    recommended_equipment: Optional[str] = None
+    difficulty: str = Field(max_length=3)
+    max_difficulty: str = Field(max_length=16)
+    author: Optional[str] = None
+    length: Optional[int] = None
+    year: Optional[int] = None
+    height_difference: Optional[int] = None
+    start_height: Optional[int] = None
+    descent: Optional[str] = None
 
 
 class RouteListItem(BaseModel):
@@ -438,11 +438,11 @@ class RouteSection(SQLModel, table=True):
 
 class RouteSectionCreate(BaseModel):
     route_id: int
-    num: int | None
-    description: str | None
-    length: int | None
-    difficulty: str | None = Field(max_length=32)
-    angle: str | None = Field(max_length=32)
+    num: Optional[int] = None
+    description: Optional[str] = None
+    length: Optional[int] = None
+    difficulty: Optional[str] = None
+    angle: Optional[str] = None
 
 
 class RoutePhoto(SQLModel, table=True):
@@ -482,5 +482,5 @@ class RoutePoint(SQLModel, table=True):
 
 class RoutePointCreate(BaseModel):
     route_id: int
-    description: str | None
-    point: Optional[GeoPointCreate] | None
+    description: Optional[str] = None
+    point: GeoPointCreate
