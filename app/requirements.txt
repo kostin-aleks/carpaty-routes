@@ -1,7 +1,9 @@
 alembic
+black
+isort
 fastapi[standard]
-sqlmodel
 passlib[bcrypt]
 pymysql
 python-slugify
 sqladmin[full]
+sqlmodel

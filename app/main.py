@@ -1,11 +1,9 @@
+from fastapi import FastAPI
 from sqladmin import Admin
 
-from fastapi import FastAPI
-
 from .database import db
-from .routers import mountains
-from .routers import users
-from .models.admin import APIUserAdmin, RidgeAdmin, PeakAdmin, RouteAdmin
+from .models.admin import APIUserAdmin, PeakAdmin, RidgeAdmin, RouteAdmin
+from .routers import mountains, users
 
 app = FastAPI()
 

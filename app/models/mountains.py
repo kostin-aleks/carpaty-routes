@@ -1,11 +1,11 @@
-from datetime import datetime
 import os
+from datetime import datetime
+from typing import List, Optional
 
-from sqlmodel import Field, SQLModel, Relationship
+from pydantic import BaseModel, ConfigDict, HttpUrl, computed_field
 from sqlalchemy import Column, Text
 from sqlalchemy.types import String, TypeDecorator
-from pydantic import HttpUrl, computed_field, BaseModel, ConfigDict
-from typing import Optional, List
+from sqlmodel import Field, Relationship, SQLModel
 
 import app.settings as app_settings
 from app.models.users import APIUser

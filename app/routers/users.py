@@ -1,18 +1,25 @@
 from datetime import datetime, timedelta, timezone
-import jwt
 from typing import Annotated
 
+import jwt
+from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from starlette.config import Config
 from jwt.exceptions import InvalidTokenError
 from passlib.context import CryptContext
-from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session, select
-from app.models.users import (
-    Token, TokenData, APIUser, UserPermission,
-    UserCreate, UserUpdate, UserEmailUpdate, UserPasswordUpdate)
-from app.database import get_session, db
+from starlette.config import Config
 
+from app.database import db, get_session
+from app.models.users import (
+    APIUser,
+    Token,
+    TokenData,
+    UserCreate,
+    UserEmailUpdate,
+    UserPasswordUpdate,
+    UserPermission,
+    UserUpdate,
+)
 
 config = Config('.env')
 

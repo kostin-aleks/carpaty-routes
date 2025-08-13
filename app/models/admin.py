@@ -1,6 +1,7 @@
 from sqladmin import ModelView
+
+from app.models.mountains import Peak, Ridge, Route
 from app.models.users import APIUser
-from app.models.mountains import Ridge, Peak, Route
 
 
 class APIUserAdmin(ModelView, model=APIUser):

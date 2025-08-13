@@ -1,5 +1,4 @@
-from sqlmodel import create_engine
-from sqlmodel import Session
+from sqlmodel import Session, create_engine
 
 from .settings import config
 

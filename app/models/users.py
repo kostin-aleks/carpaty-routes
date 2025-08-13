@@ -1,9 +1,8 @@
 from datetime import datetime
-
-from pydantic import (BaseModel, EmailStr)
-from sqlmodel import Field, SQLModel
-
 from typing import Optional
+
+from pydantic import BaseModel, EmailStr
+from sqlmodel import Field, SQLModel
 
 
 class APIUser(SQLModel, table=True):
