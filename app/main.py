@@ -1,3 +1,6 @@
+"""
+MAIN
+"""
 from fastapi import FastAPI
 from sqladmin import Admin
 
@@ -19,4 +22,7 @@ admin.add_view(RouteAdmin)
 
 @app.get("/")
 async def root():
+    """
+    fake end-point
+    """
     return {"application": "Carpathians winter routes"}

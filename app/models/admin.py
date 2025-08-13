@@ -1,3 +1,6 @@
+"""
+Admin classes
+"""
 from sqladmin import ModelView
 
 from app.models.mountains import Peak, Ridge, Route
@@ -5,6 +8,9 @@ from app.models.users import APIUser
 
 
 class APIUserAdmin(ModelView, model=APIUser):
+    """
+    Admin class for APIUser
+    """
     column_list = [
         APIUser.id,
         APIUser.username,
@@ -19,6 +25,9 @@ class APIUserAdmin(ModelView, model=APIUser):
 
 
 class RidgeAdmin(ModelView, model=Ridge):
+    """
+    Admin class for Ridge
+    """
     column_list = [
         Ridge.id,
         Ridge.slug,
@@ -41,6 +50,9 @@ class RidgeAdmin(ModelView, model=Ridge):
 
 
 class PeakAdmin(ModelView, model=Peak):
+    """
+    Admin class for Peak
+    """
     column_list = [
         Peak.id,
         Peak.slug,
@@ -65,6 +77,9 @@ class PeakAdmin(ModelView, model=Peak):
 
 
 class RouteAdmin(ModelView, model=Route):
+    """
+    Admin class for Route
+    """
     column_list = [
         Route.id,
         Route.peak_id,

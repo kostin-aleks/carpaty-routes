@@ -1,3 +1,6 @@
+"""
+Router Mountains
+"""
 from datetime import datetime, timedelta, timezone
 from typing import Annotated
 
@@ -23,9 +26,9 @@ from app.models.users import (
 
 config = Config(".env")
 
-_secret_key = config("SECRET_KEY", cast=str)
-_algorithm = config("ALGORITHM", cast=str)
-_access_token_expire_minutes = config("ACCESS_TOKEN_EXPIRE_MINUTES", cast=int)
+_SECRET_KEY = config("SECRET_KEY", cast=str)
+_ALGORITHM = config("ALGORITHM", cast=str)
+_ACCESS_TOKEN_EXPIRE_MINUTES = config("ACCESS_TOKEN_EXPIRE_MINUTES", cast=int)
 
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -41,14 +44,17 @@ router = APIRouter(
 
 
 def verify_password(plain_password, hashed_password):
+    """verify password"""
     return pwd_context.verify(plain_password, hashed_password)
 
 
 def get_password_hash(password):
+    """create and return hash of password"""
     return pwd_context.hash(password)
 
 
 def get_user(username: str):
+    """get user by username"""
     session = Session(db)
     statement = select(APIUser).where(APIUser.username == username)
     db_user = session.exec(statement).first()
@@ -57,6 +63,7 @@ def get_user(username: str):
 
 
 def authenticate_user(username: str, password: str):
+    """authenticate user"""
     user = get_user(username)
     if not user:
         return False
@@ -66,24 +73,26 @@ def authenticate_user(username: str, password: str):
 
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None):
+    """create access token"""
     to_encode = data.copy()
     if expires_delta:
         expire = datetime.now(timezone.utc) + expires_delta
     else:
         expire = datetime.now(timezone.utc) + timedelta(minutes=15)
     to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, _secret_key, algorithm=_algorithm)
+    encoded_jwt = jwt.encode(to_encode, _SECRET_KEY, algorithm=_ALGORITHM)
     return encoded_jwt
 
 
 async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
+    """get current user"""
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
-        payload = jwt.decode(token, _secret_key, algorithms=[_algorithm])
+        payload = jwt.decode(token, _SECRET_KEY, algorithms=[_ALGORITHM])
         username = payload.get("sub")
         if username is None:
             raise credentials_exception
@@ -101,6 +110,7 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
 async def get_current_active_user(
     current_user: Annotated[APIUser, Depends(get_current_user)]
 ):
+    """get current active user"""
     if not current_user.is_active:
         raise HTTPException(status_code=400, detail="Inactive user")
     return current_user
@@ -110,6 +120,7 @@ async def get_current_active_user(
 async def login_for_access_token(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
 ) -> Token:
+    """login by username and password and return token"""
     user = authenticate_user(form_data.username, form_data.password)
     if not user:
         raise HTTPException(
@@ -117,7 +128,7 @@ async def login_for_access_token(
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    access_token_expires = timedelta(minutes=_access_token_expire_minutes)
+    access_token_expires = timedelta(minutes=_ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
         data={"sub": user.username}, expires_delta=access_token_expires
     )
@@ -128,6 +139,7 @@ async def login_for_access_token(
 async def read_users_me(
     current_user: Annotated[APIUser, Depends(get_current_active_user)]
 ):
+    """return data for current user"""
     return current_user
 
 
@@ -135,6 +147,7 @@ async def read_users_me(
 async def register_user(
     user: UserCreate, session: Session = Depends(get_session)
 ) -> APIUser:
+    """register new user"""
     # Check for existing user
     statement = select(APIUser).where(APIUser.username == user.username)
     db_user = session.exec(statement).first()
@@ -167,15 +180,16 @@ async def register_user(
     return db_user
 
 
-@router.put("/update/{id}", response_model=APIUser)
+@router.put("/update/{user_id}", response_model=APIUser)
 async def update_user(
-    id: int,
+    user_id: int,
     user: UserUpdate,
     current_user: Annotated[APIUser, Depends(get_current_active_user)],
     session: Session = Depends(get_session),
 ) -> APIUser:
+    """update user"""
     # Check for existing user
-    statement = select(APIUser).where(APIUser.id == id)
+    statement = select(APIUser).where(APIUser.id == user_id)
     db_user = session.exec(statement).first()
     if not db_user or db_user.username != user.username:
         raise HTTPException(
@@ -193,15 +207,16 @@ async def update_user(
     return db_user
 
 
-@router.put("/set/permissions/{id}", response_model=APIUser)
+@router.put("/set/permissions/{user_id}", response_model=APIUser)
 async def set_user_permissions(
-    id: int,
+    user_id: int,
     data: UserPermission,
     current_user: Annotated[APIUser, Depends(get_current_active_user)],
     session: Session = Depends(get_session),
 ) -> APIUser:
+    """update user permissions"""
     # Check for existing user
-    statement = select(APIUser).where(APIUser.id == id)
+    statement = select(APIUser).where(APIUser.id == user_id)
     db_user = session.exec(statement).first()
     if not db_user:
         raise HTTPException(
@@ -231,6 +246,7 @@ async def update_user_email(
     current_user: Annotated[APIUser, Depends(get_current_active_user)],
     session: Session = Depends(get_session),
 ) -> APIUser:
+    """update user email"""
     # Check for existing user
     statement = select(APIUser).where(APIUser.email == user.email)
     db_user = session.exec(statement).first()
@@ -253,6 +269,7 @@ async def update_user_password(
     current_user: Annotated[APIUser, Depends(get_current_active_user)],
     session: Session = Depends(get_session),
 ) -> APIUser:
+    """update user password"""
     # Check for existing user
     statement = select(APIUser).where(APIUser.username == user.username)
     db_user = session.exec(statement).first()

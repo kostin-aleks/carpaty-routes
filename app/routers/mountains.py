@@ -1,3 +1,6 @@
+"""
+Router Mountains
+"""
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, status
@@ -39,14 +42,15 @@ router = APIRouter(
 )
 
 
-def unique_slugify(Cls, text):
+def unique_slugify(klas, text):
+    """slugify string and check that is unique"""
     session = Session(db)
     slug = slugify(text)
     for k in range(100):
         _slug = slug
         if k:
             _slug = f"{slug}-{k}"
-        statement = select(Cls).where(Cls.slug == _slug)
+        statement = select(klas).where(klas.slug == _slug)
         item = session.exec(statement).first()
         if not item:
             slug = _slug
@@ -56,6 +60,7 @@ def unique_slugify(Cls, text):
 
 @router.get("/ridges")
 async def get_ridges(session: Session = Depends(get_session)) -> list[Ridge]:
+    """get list of mountain ridges"""
     ridges = session.exec(select(Ridge)).all()
     return ridges
 
@@ -66,6 +71,7 @@ async def add_ridge(
     current_user: Annotated[APIUser, Depends(get_current_active_user)],
     session: Session = Depends(get_session),
 ) -> Ridge:
+    """add new ridge"""
     if not (current_user.is_admin or current_user.is_editor):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -91,6 +97,7 @@ async def update_ridge(
     current_user: Annotated[APIUser, Depends(get_current_active_user)],
     session: Session = Depends(get_session),
 ) -> Ridge:
+    """update the ridge fields"""
     statement = select(Ridge).where(Ridge.slug == slug)
     db_ridge = session.exec(statement).first()
     if not db_ridge:
@@ -119,6 +126,7 @@ async def update_ridge(
 
 @router.get("/ridge/{slug}")
 async def get_ridge(slug: str, session: Session = Depends(get_session)) -> RidgeOut:
+    """get the ridge by slug"""
     statement = select(Ridge).where(Ridge.slug == slug)
     ridge = session.exec(statement).first()
     if ridge is None:
@@ -135,6 +143,7 @@ async def add_ridge_infolink(
     current_user: Annotated[APIUser, Depends(get_current_active_user)],
     session: Session = Depends(get_session),
 ) -> RidgeInfoLink:
+    """add new link to the ridge"""
     statement = select(Ridge).where(Ridge.id == ridge_id)
     ridge = session.exec(statement).first()
     if not ridge:
@@ -153,8 +162,8 @@ async def add_ridge_infolink(
 
     db_link = RidgeInfoLink(
         ridge_id=ridge.id,
-        link=ridge.link,
-        description=ridge.description,
+        link=infolink.link,
+        description=infolink.description,
     )
 
     session.add(db_link)
@@ -169,6 +178,7 @@ async def delete_ridge(
     current_user: Annotated[APIUser, Depends(get_current_active_user)],
     session: Session = Depends(get_session),
 ) -> ResponceStatus:
+    """delete the ridge"""
     statement = select(Ridge).where(Ridge.slug == slug)
     ridge = session.exec(statement).first()
     if ridge is None:
@@ -187,13 +197,14 @@ async def delete_ridge(
     return ResponceStatus(status=True, message=f"Ridge {slug} deleted succesfully")
 
 
-@router.delete("/ridge/link/{id}")
+@router.delete("/ridge/link/{link_id}")
 async def delete_ridge_link(
-    id: int,
+    link_id: int,
     current_user: Annotated[APIUser, Depends(get_current_active_user)],
     session: Session = Depends(get_session),
 ) -> ResponceStatus:
-    statement = select(RidgeInfoLink).where(RidgeInfoLink.id == id)
+    """delete the ridge link"""
+    statement = select(RidgeInfoLink).where(RidgeInfoLink.id == link_id)
     link = session.exec(statement).first()
     if link is None:
         raise HTTPException(status_code=404, detail="Ridge info link not found")
@@ -217,6 +228,7 @@ async def delete_ridge_link(
 async def get_ridge_peaks(
     slug: str, session: Session = Depends(get_session)
 ) -> list[PeakShortOut]:
+    """get list of ridge peaks"""
     statement = select(Ridge).where(Ridge.slug == slug)
     ridge = session.exec(statement).first()
     if ridge is None:
@@ -231,18 +243,20 @@ async def get_ridge_peaks(
 
 @router.get("/peaks")
 async def get_peaks(session: Session = Depends(get_session)) -> list[Peak]:
+    """get list of all peaks"""
     peaks = session.exec(select(Peak)).all()
     return peaks
 
 
 @router.get("/peaks/search", response_model=list[PeakOut])
 async def search_peak(
-    q: Annotated[str | None, Query(max_length=50)] = None,
+    key: Annotated[str | None, Query(max_length=50)] = None,
     session: Session = Depends(get_session),
 ) -> list[PeakOut]:
+    """search peaks by slug or name"""
     statement = select(Peak)
-    if q:
-        statement = statement.where(Peak.slug.contains(q) | Peak.name.contains(q))
+    if key:
+        statement = statement.where(Peak.slug.contains(key) | Peak.name.contains(key))
     peaks = session.exec(statement).all()
 
     return peaks
@@ -250,11 +264,11 @@ async def search_peak(
 
 @router.get("/peak/{slug}", response_model=PeakOut)
 async def get_peak(slug: str, session: Session = Depends(get_session)) -> PeakOut:
+    """get the peak by slug"""
     statement = select(Peak).where(Peak.slug == slug)
     peak = session.exec(statement).first()
     if peak is None:
         raise HTTPException(status_code=404, detail="Peak not found")
-    # peak_out = RidgeOut.model_validate(ridge)
 
     return peak
 
@@ -265,6 +279,7 @@ async def add_peak(
     current_user: Annotated[APIUser, Depends(get_current_active_user)],
     session: Session = Depends(get_session),
 ) -> Peak:
+    """add new peak"""
     if not (current_user.is_admin or current_user.is_editor):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -305,6 +320,7 @@ async def add_peak_photo(
     current_user: Annotated[APIUser, Depends(get_current_active_user)],
     session: Session = Depends(get_session),
 ) -> PeakPhoto:
+    """add new peak photo"""
     statement = select(Peak).where(Peak.id == peak_id)
     peak = session.exec(statement).first()
     if not peak:
@@ -323,8 +339,8 @@ async def add_peak_photo(
     image_dir = Peak.path_to_images()
     try:
         file_path = f"{image_dir}/{file.filename}"
-        with open(file_path, "wb") as f:
-            f.write(file.file.read())
+        with open(file_path, "wb") as _file:
+            _file.write(file.file.read())
             # return {'message': 'File saved successfully', 'success': True}
         _path = Peak.db_path_to_images()
         photo_path = f"{_path}/{file.filename}"
@@ -336,8 +352,8 @@ async def add_peak_photo(
 
         return image
 
-    except Exception as e:
-        return {"message": e.args, "success": False}
+    except Exception as error:
+        return {"message": error.args, "success": False}
 
 
 @router.put("/peak/{slug}", response_model=Peak)
@@ -347,6 +363,7 @@ async def update_peak(
     current_user: Annotated[APIUser, Depends(get_current_active_user)],
     session: Session = Depends(get_session),
 ) -> Peak:
+    """update the peak fields"""
     statement = select(Peak).where(Peak.slug == slug)
     db_peak = session.exec(statement).first()
     if not db_peak:
@@ -394,6 +411,7 @@ async def update_peak_photo(
     current_user: Annotated[APIUser, Depends(get_current_active_user)],
     session: Session = Depends(get_session),
 ) -> Peak:
+    """update the peak photo"""
     statement = select(Peak).where(Peak.id == peak_id)
     peak = session.exec(statement).first()
     if not peak:
@@ -412,8 +430,8 @@ async def update_peak_photo(
     image_dir = Peak.path_to_images()
     try:
         file_path = f"{image_dir}/{file.filename}"
-        with open(file_path, "wb") as f:
-            f.write(file.file.read())
+        with open(file_path, "wb") as _file:
+            _file.write(file.file.read())
 
         _path = Peak.db_path_to_images()
         photo_path = f"{_path}/{file.filename}"
@@ -425,8 +443,8 @@ async def update_peak_photo(
 
         return peak
 
-    except Exception as e:
-        return {"message": e.args, "success": False}
+    except Exception as error:
+        return {"message": error.args, "success": False}
 
 
 @router.delete("/peak/{slug}")
@@ -435,6 +453,7 @@ async def delete_peak(
     current_user: Annotated[APIUser, Depends(get_current_active_user)],
     session: Session = Depends(get_session),
 ) -> ResponceStatus:
+    """delete the peak"""
     statement = select(Peak).where(Peak.slug == slug)
     peak = session.exec(statement).first()
     if peak is None:
@@ -453,13 +472,14 @@ async def delete_peak(
     return ResponceStatus(status=True, message=f"Peak {slug} deleted succesfully")
 
 
-@router.delete("/peak/photo/{id}")
+@router.delete("/peak/photo/{photo_id}")
 async def delete_peak_photo(
-    id: int,
+    photo_id: int,
     current_user: Annotated[APIUser, Depends(get_current_active_user)],
     session: Session = Depends(get_session),
 ) -> ResponceStatus:
-    statement = select(PeakPhoto).where(PeakPhoto.id == id)
+    """delete the peak photo"""
+    statement = select(PeakPhoto).where(PeakPhoto.id == photo_id)
     photo = session.exec(statement).first()
     if photo is None:
         raise HTTPException(status_code=404, detail="Peak photo not found")
@@ -483,6 +503,7 @@ async def delete_peak_photo(
 async def get_peak_routes(
     slug: str, session: Session = Depends(get_session)
 ) -> list[RouteListItem]:
+    """get list of peak routes"""
     statement = select(Peak).where(Peak.slug == slug)
     peak = session.exec(statement).first()
     if peak is None:
@@ -495,20 +516,22 @@ async def get_peak_routes(
 
 @router.get("/routes")
 async def get_routes(session: Session = Depends(get_session)) -> list[Route]:
+    """get list of all routes"""
     routes = session.exec(select(Route)).all()
     return routes
 
 
 @router.get("/routes/search", response_model=list[RouteListItem])
 async def search_route(
-    q: Annotated[str | None, Query(max_length=50)] = None,
+    query: Annotated[str | None, Query(max_length=50)] = None,
     author: Annotated[str | None, Query(max_length=50)] = None,
     category: Annotated[str | None, Query(max_length=50)] = None,
     session: Session = Depends(get_session),
 ) -> list[RouteListItem]:
+    """search routes by slug or name"""
     statement = select(Route)
-    if q:
-        statement = statement.where(Route.slug.contains(q) | Route.name.contains(q))
+    if query:
+        statement = statement.where(Route.slug.contains(query) | Route.name.contains(query))
     if author:
         statement = statement.where(Route.author.contains(author))
     if category:
@@ -520,6 +543,7 @@ async def search_route(
 
 @router.get("/route/{slug}")
 async def get_route(slug: str, session: Session = Depends(get_session)) -> RouteOut:
+    """get the route by slug"""
     statement = select(Route).where(Route.slug == slug)
     route = session.exec(statement).first()
     if route is None:
@@ -535,6 +559,7 @@ async def add_route(
     current_user: Annotated[APIUser, Depends(get_current_active_user)],
     session: Session = Depends(get_session),
 ) -> Route:
+    """add new route"""
     if not (current_user.is_admin or current_user.is_editor):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -571,6 +596,7 @@ async def add_route_section(
     current_user: Annotated[APIUser, Depends(get_current_active_user)],
     session: Session = Depends(get_session),
 ) -> RouteSection:
+    """add new route section"""
     statement = select(Route).where(Route.id == section.route_id)
     route = session.exec(statement).first()
     if route is None:
@@ -607,6 +633,7 @@ async def add_route_point(
     current_user: Annotated[APIUser, Depends(get_current_active_user)],
     session: Session = Depends(get_session),
 ) -> RoutePoint:
+    """add new route point"""
     statement = select(Route).where(Route.id == point.route_id)
     route = session.exec(statement).first()
     if route is None:
@@ -652,6 +679,7 @@ async def add_route_photo(
     current_user: Annotated[APIUser, Depends(get_current_active_user)],
     session: Session = Depends(get_session),
 ) -> RoutePhoto:
+    """add new route photo"""
     statement = select(Route).where(Route.id == route_id)
     route = session.exec(statement).first()
     if not route:
@@ -670,8 +698,8 @@ async def add_route_photo(
     image_dir = Route.path_to_images()
     try:
         file_path = f"{image_dir}/{file.filename}"
-        with open(file_path, "wb") as f:
-            f.write(file.file.read())
+        with open(file_path, "wb") as _file:
+            _file.write(file.file.read())
 
         _path = Route.db_path_to_images()
         photo_path = f"{_path}/{file.filename}"
@@ -683,8 +711,8 @@ async def add_route_photo(
 
         return image
 
-    except Exception as e:
-        return {"message": e.args, "success": False}
+    except Exception as error:
+        return {"message": error.args, "success": False}
 
 
 @router.put("/route/{route_id}/map", response_model=Route)
@@ -694,6 +722,7 @@ async def update_route_map(
     current_user: Annotated[APIUser, Depends(get_current_active_user)],
     session: Session = Depends(get_session),
 ) -> Route:
+    """update route map"""
     statement = select(Route).where(Route.id == route_id)
     route = session.exec(statement).first()
     if not route:
@@ -712,8 +741,8 @@ async def update_route_map(
     image_dir = Route.path_to_images()
     try:
         file_path = f"{image_dir}/{file.filename}"
-        with open(file_path, "wb") as f:
-            f.write(file.file.read())
+        with open(file_path, "wb") as _file:
+            _file.write(file.file.read())
 
         _path = Route.db_path_to_images()
         photo_path = f"{_path}/{file.filename}"
@@ -725,8 +754,8 @@ async def update_route_map(
 
         return route
 
-    except Exception as e:
-        return {"message": e.args, "success": False}
+    except Exception as error:
+        return {"message": error.args, "success": False}
 
 
 @router.put("/route/{route_id}/photo", response_model=Route)
@@ -736,6 +765,7 @@ async def update_route_photo(
     current_user: Annotated[APIUser, Depends(get_current_active_user)],
     session: Session = Depends(get_session),
 ) -> Peak:
+    """update route photo"""
     statement = select(Route).where(Route.id == route_id)
     route = session.exec(statement).first()
     if not route:
@@ -754,8 +784,8 @@ async def update_route_photo(
     image_dir = Route.path_to_images()
     try:
         file_path = f"{image_dir}/{file.filename}"
-        with open(file_path, "wb") as f:
-            f.write(file.file.read())
+        with open(file_path, "wb") as _file:
+            _file.write(file.file.read())
 
         _path = Route.db_path_to_images()
         photo_path = f"{_path}/{file.filename}"
@@ -767,8 +797,8 @@ async def update_route_photo(
 
         return route
 
-    except Exception as e:
-        return {"message": e.args, "success": False}
+    except Exception as error:
+        return {"message": error.args, "success": False}
 
 
 @router.put("/route/{route_id}", response_model=Route)
@@ -778,6 +808,7 @@ async def update_route(
     current_user: Annotated[APIUser, Depends(get_current_active_user)],
     session: Session = Depends(get_session),
 ) -> Route:
+    """update route fields"""
     statement = select(Route).where(Route.id == route_id)
     db_route = session.exec(statement).first()
     if not db_route:
@@ -811,6 +842,7 @@ async def update_route_section(
     current_user: Annotated[APIUser, Depends(get_current_active_user)],
     session: Session = Depends(get_session),
 ) -> RouteSection:
+    """update route section"""
     statement = select(RouteSection).where(RouteSection.id == section_id)
     db_section = session.exec(statement).first()
     if not db_section:
@@ -843,6 +875,7 @@ async def delete_route(
     current_user: Annotated[APIUser, Depends(get_current_active_user)],
     session: Session = Depends(get_session),
 ) -> ResponceStatus:
+    """delete the route"""
     statement = select(Route).where(Route.slug == slug)
     route = session.exec(statement).first()
     if route is None:
@@ -862,13 +895,14 @@ async def delete_route(
     return ResponceStatus(status=True, message=f"Route {slug} deleted succesfully")
 
 
-@router.delete("/route/point/{id}")
+@router.delete("/route/point/{point_id}")
 async def delete_route_point(
-    id: int,
+    point_id: int,
     current_user: Annotated[APIUser, Depends(get_current_active_user)],
     session: Session = Depends(get_session),
 ) -> ResponceStatus:
-    statement = select(RoutePoint).where(RoutePoint.id == id)
+    """delete route point"""
+    statement = select(RoutePoint).where(RoutePoint.id == point_id)
     point = session.exec(statement).first()
     if point is None:
         raise HTTPException(status_code=404, detail="Route point not found")
@@ -885,17 +919,18 @@ async def delete_route_point(
     session.commit()
 
     return ResponceStatus(
-        status=True, message=f"Route point with id={id} deleted succesfully"
+        status=True, message=f"Route point with id={point_id} deleted succesfully"
     )
 
 
-@router.delete("/route/section/{id}")
+@router.delete("/route/section/{section_id}")
 async def delete_route_section(
-    id: int,
+    section_id: int,
     current_user: Annotated[APIUser, Depends(get_current_active_user)],
     session: Session = Depends(get_session),
 ) -> ResponceStatus:
-    statement = select(RouteSection).where(RouteSection.id == id)
+    """delete route section"""
+    statement = select(RouteSection).where(RouteSection.id == section_id)
     section = session.exec(statement).first()
     if section is None:
         raise HTTPException(status_code=404, detail="Route section not found")
@@ -911,5 +946,5 @@ async def delete_route_section(
     session.commit()
 
     return ResponceStatus(
-        status=True, message=f"Route section with id={id} deleted succesfully"
+        status=True, message=f"Route section with id={section_id} deleted succesfully"
     )

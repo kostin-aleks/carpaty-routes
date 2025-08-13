@@ -1,9 +1,15 @@
+"""
+Geoname models
+"""
 from datetime import datetime
 
 from sqlmodel import Field, SQLModel
 
 
 class GeoCity(SQLModel, table=True):
+    """
+    Model for City
+    """
     __tablename__ = "geo_city"
     id: int | None = Field(default=None, primary_key=True)
     geonameid: int = Field(default=0, index=True)
@@ -30,6 +36,9 @@ class GeoCity(SQLModel, table=True):
 
 
 class GeoCountry(SQLModel, table=True):
+    """
+    Model for Country
+    """
     __tablename__ = "geo_country"
     id: int | None = Field(default=None, primary_key=True)
     geoname_id: int = Field(default=0, index=True)
@@ -48,6 +57,9 @@ class GeoCountry(SQLModel, table=True):
 
 
 class GeoCountryLanguage(SQLModel, table=True):
+    """
+    Model for Country Language
+    """
     __tablename__ = "geo_country_language"
     id: int | None = Field(default=None, primary_key=True)
     country_iso3: str = Field(max_length=3, index=True)
@@ -55,6 +67,9 @@ class GeoCountryLanguage(SQLModel, table=True):
 
 
 class GeoCountryNeighbour(SQLModel, table=True):
+    """
+    Model for Country Neighbour
+    """
     __tablename__ = "geo_country_neighbour"
     id: int | None = Field(default=None, primary_key=True)
     country_iso3: str = Field(max_length=3, index=True)
@@ -62,6 +77,9 @@ class GeoCountryNeighbour(SQLModel, table=True):
 
 
 class GeoCountryAdminSubject(SQLModel, table=True):
+    """
+    Model for Country Subject
+    """
     __tablename__ = "geo_country_subject"
     id: int | None = Field(default=None, primary_key=True)
     geoname_id: int = Field(default=0, index=True)
@@ -71,6 +89,9 @@ class GeoCountryAdminSubject(SQLModel, table=True):
 
 
 class GeoRUSSubject(SQLModel, table=True):
+    """
+    Model for Russia Subject
+    """
     __tablename__ = "geo_russia_subject"
     id: int | None = Field(default=None, primary_key=True)
     geoname_id: int = Field(default=0, index=True)
@@ -83,6 +104,9 @@ class GeoRUSSubject(SQLModel, table=True):
 
 
 class GeoUKRSubject(SQLModel, table=True):
+    """
+    Model for Ukraine Subject
+    """
     __tablename__ = "geo_ukraine_subject"
     id: int | None = Field(default=None, primary_key=True)
     geoname_id: int = Field(default=0, index=True)

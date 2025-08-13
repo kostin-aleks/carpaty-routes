@@ -1,3 +1,6 @@
+"""
+Mountain Models
+"""
 import os
 from datetime import datetime
 from typing import List, Optional
@@ -14,39 +17,54 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
 
 class MediaRoot:
+    """
+    Класс со статическими методами для организации загрузки файла
+    """
     @staticmethod
     def root():
+        """
+        get path for root directory to store photos
+        """
         media_root = f"{PROJECT_ROOT}{app_settings.MEDIA_ROOT}"
         photos_root = f"{media_root}{app_settings.PHOTOS_ROOT}"
         try:
             os.makedirs(photos_root, exist_ok=True)
             print(f"Folder '{photos_root}' created successfully or already existed.")
-        except OSError as e:
-            print(f"Error creating folder '{photos_root}': {e}")
+        except OSError as error:
+            print(f"Error creating folder '{photos_root}': {error}")
 
         return photos_root
 
     @staticmethod
-    def path_to_images(Cls):
+    def path_to_images(klas):
+        """
+        get path to photos directory
+        """
         media_root = MediaRoot.root()
         _now = datetime.now().strftime("%Y%m%d%H%M")
-        _directory = f"{media_root}/{Cls.__name__.lower()}/{_now}"
+        _directory = f"{media_root}/{klas.__name__.lower()}/{_now}"
         try:
             os.makedirs(_directory, exist_ok=True)
             print(f"Folder '{_directory}' created successfully or already existed.")
-        except OSError as e:
-            print(f"Error creating folder '{_directory}': {e}")
+        except OSError as error:
+            print(f"Error creating folder '{_directory}': {error}")
 
         return _directory
 
     @staticmethod
-    def db_path_to_images(Cls):
+    def db_path_to_images(klas):
+        """
+        get path that is prefix to photo name in db table
+        """
         _now = datetime.now().strftime("%Y%m%d%H%M")
-        _directory = f"{app_settings.PHOTOS_ROOT}/{Cls.__name__.lower()}/{_now}"
+        _directory = f"{app_settings.PHOTOS_ROOT}/{klas.__name__.lower()}/{_now}"
         return _directory
 
 
 class HttpUrlType(TypeDecorator):
+    """
+    Type for http link
+    """
     impl = String(2083)
     cache_ok = True
     python_type = HttpUrl
@@ -62,6 +80,9 @@ class HttpUrlType(TypeDecorator):
 
 
 class GeoPoint(SQLModel, table=True):
+    """
+    Model for Geo Point
+    """
     __tablename__ = "geopoint"
     id: int | None = Field(default=None, primary_key=True)
     latitude: float = 0
@@ -72,11 +93,17 @@ class GeoPoint(SQLModel, table=True):
 
 
 class ResponceStatus(BaseModel):
+    """
+    Data Model for Status
+    """
     message: str = ""
     status: bool = True
 
 
 class GeoPointCreate(BaseModel):
+    """
+    Data Model for new Point
+    """
     latitude: float = 0
     longitude: float = 0
 
@@ -102,29 +129,33 @@ class Ridge(SQLModel, table=True):
     @computed_field
     @property
     def peaks_list(self) -> list:
+        """peaks list"""
         return self.peaks
 
     @computed_field
     @property
     def infolinks_list(self) -> list:
+        """list of info links"""
         return self.infolinks
 
     @classmethod
     def path_to_images(cls):
+        """path to store images"""
         media_root = MediaRoot.root()
         _now = datetime.now().strftime("%Y%m%d%H%M")
         _directory = f"{media_root}/{cls.__name__.lower()}/{_now}"
         try:
             os.makedirs(_directory, exist_ok=True)
             print(f"Folder '{_directory}' created successfully or already existed.")
-        except OSError as e:
-            print(f"Error creating folder '{_directory}': {e}")
+        except OSError as error:
+            print(f"Error creating folder '{_directory}': {error}")
 
         return _directory
 
     @computed_field
     @property
     def can_be_deleted(self) -> bool:
+        """можно удалить объект?"""
         if self.peaks_list:
             return False
         if self.infolinks_list:
@@ -179,11 +210,17 @@ class RidgeInfoLink(SQLModel, table=True):
 
 
 class RidgeCreate(BaseModel):
+    """
+    Data Model for new Ridge
+    """
     name: str = Field(max_length=128)
     description: Optional[str] = None
 
 
 class RidgeInfoLinkCreate(BaseModel):
+    """
+    Data Model for new Link
+    """
     ridge_id: Optional[int] = Field(default=None, foreign_key="ridge.id")
     link: HttpUrl = Field(max_length=128)
     description: Optional[str] = None
@@ -216,24 +253,29 @@ class Peak(SQLModel, table=True):
     @computed_field
     @property
     def photos_list(self) -> list:
+        """list of photos"""
         return self.photos
 
     @computed_field
     @property
     def routes_list(self) -> list:
+        """list of routes"""
         return self.routes
 
     @classmethod
     def path_to_images(cls):
+        """path to store images"""
         return MediaRoot.path_to_images(cls)
 
     @classmethod
     def db_path_to_images(cls):
+        """path to images as prefix of file name in db table"""
         return MediaRoot.db_path_to_images(cls)
 
     @computed_field
     @property
     def can_be_deleted(self) -> bool:
+        """can delete this object?"""
         if self.photos_list:
             return False
         if self.routes_list:
@@ -281,6 +323,9 @@ class PeakShortOut(BaseModel):
 
 
 class PeakCreate(BaseModel):
+    """
+    Data Model for new Peak
+    """
     name: str = Field(max_length=128)
     description: Optional[str] = None
     ridge_id: int
@@ -337,29 +382,35 @@ class Route(SQLModel, table=True):
     @computed_field
     @property
     def photos_list(self) -> list:
+        """list of photos"""
         return self.photos
 
     @computed_field
     @property
     def routepoints_list(self) -> list:
+        """list of route points"""
         return self.routepoints
 
     @computed_field
     @property
     def sections_list(self) -> list:
+        """list of sections"""
         return self.sections
 
     @classmethod
     def path_to_images(cls):
+        """path to store images"""
         return MediaRoot.path_to_images(cls)
 
     @classmethod
     def db_path_to_images(cls):
+        """prfix of file name in db table"""
         return MediaRoot.db_path_to_images(cls)
 
     @computed_field
     @property
     def can_be_deleted(self) -> bool:
+        """can delete this object?"""
         if self.sections_list:
             return False
         if self.photos_list:
@@ -404,6 +455,9 @@ class RouteOut(BaseModel):
 
 
 class RouteCreate(BaseModel):
+    """
+    Data Model for new Route
+    """
     peak_id: int
     name: str = Field(max_length=64)
     description: Optional[str] = None
@@ -451,6 +505,9 @@ class RouteSection(SQLModel, table=True):
 
 
 class RouteSectionCreate(BaseModel):
+    """
+    Data Model for new Route Section
+    """
     route_id: int
     num: Optional[int] = None
     description: Optional[str] = None
@@ -488,15 +545,20 @@ class RoutePoint(SQLModel, table=True):
     @computed_field
     @property
     def latitude(self) -> float:
+        """point latitude"""
         return self.point.latitude
 
     @computed_field
     @property
     def longitude(self) -> float:
+        """point longitude"""
         return self.point.longitude
 
 
 class RoutePointCreate(BaseModel):
+    """
+    Data Model for new Route Point
+    """
     route_id: int
     description: Optional[str] = None
     point: GeoPointCreate

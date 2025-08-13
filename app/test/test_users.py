@@ -1,3 +1,6 @@
+"""
+tests for router User
+"""
 import json
 
 import pytest
@@ -15,6 +18,7 @@ client = TestClient(app)
 
 @pytest.fixture
 def the_user():
+    """fixture the_user"""
     session = Session(db)
     statement = select(APIUser).where(
         APIUser.username == config("TEST_USERNAME", cast=str)
@@ -25,6 +29,7 @@ def the_user():
 
 @pytest.fixture
 def the_token():
+    """fixture the_token"""
     form_data = {
         "username": config("TEST_USERNAME", cast=str),
         "password": config("TEST_PASSWORD", cast=str),
@@ -37,6 +42,7 @@ def the_token():
 
 
 def test_read_me(the_token):
+    """test read me"""
     response = client.get(
         "/users/me", headers={"Authorization": f"Bearer {the_token['access_token']}"}
     )
@@ -49,6 +55,7 @@ def test_read_me(the_token):
 
 
 def test_put_user(the_user, the_token):
+    """test put user"""
     _buffer = the_user.middle_name
     _test = "Middle"
     post_data = {
@@ -83,6 +90,7 @@ def test_put_user(the_user, the_token):
 
 
 def test_set_user_permission(the_user, the_token):
+    """test set user permission"""
     _buffer = the_user.is_editor
     post_data = {
         "is_editor": True,
@@ -112,6 +120,7 @@ def test_set_user_permission(the_user, the_token):
 
 
 def test_update_email(the_user, the_token):
+    """test update email"""
     _buffer = the_user.email
     _test = "test@email.com"
     post_data = {
@@ -146,6 +155,7 @@ def test_update_email(the_user, the_token):
 
 
 def test_update_password(the_user, the_token):
+    """test update password"""
     _buffer = config("TEST_PASSWORD", cast=str)
     _test = "kjnbetuivcstrll34ccgh"
     post_data = {
