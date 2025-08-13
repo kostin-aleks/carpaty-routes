@@ -16,8 +16,8 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 class MediaRoot:
     @staticmethod
     def root():
-        media_root = f'{PROJECT_ROOT}{app_settings.MEDIA_ROOT}'
-        photos_root = f'{media_root}{app_settings.PHOTOS_ROOT}'
+        media_root = f"{PROJECT_ROOT}{app_settings.MEDIA_ROOT}"
+        photos_root = f"{media_root}{app_settings.PHOTOS_ROOT}"
         try:
             os.makedirs(photos_root, exist_ok=True)
             print(f"Folder '{photos_root}' created successfully or already existed.")
@@ -30,7 +30,7 @@ class MediaRoot:
     def path_to_images(Cls):
         media_root = MediaRoot.root()
         _now = datetime.now().strftime("%Y%m%d%H%M")
-        _directory = f'{media_root}/{Cls.__name__.lower()}/{_now}'
+        _directory = f"{media_root}/{Cls.__name__.lower()}/{_now}"
         try:
             os.makedirs(_directory, exist_ok=True)
             print(f"Folder '{_directory}' created successfully or already existed.")
@@ -42,7 +42,7 @@ class MediaRoot:
     @staticmethod
     def db_path_to_images(Cls):
         _now = datetime.now().strftime("%Y%m%d%H%M")
-        _directory = f'{app_settings.PHOTOS_ROOT}/{Cls.__name__.lower()}/{_now}'
+        _directory = f"{app_settings.PHOTOS_ROOT}/{Cls.__name__.lower()}/{_now}"
         return _directory
 
 
@@ -62,7 +62,7 @@ class HttpUrlType(TypeDecorator):
 
 
 class GeoPoint(SQLModel, table=True):
-    __tablename__ = 'geopoint'
+    __tablename__ = "geopoint"
     id: int | None = Field(default=None, primary_key=True)
     latitude: float = 0
     longitude: float = 0
@@ -72,7 +72,7 @@ class GeoPoint(SQLModel, table=True):
 
 
 class ResponceStatus(BaseModel):
-    message: str = ''
+    message: str = ""
     status: bool = True
 
 
@@ -85,7 +85,8 @@ class Ridge(SQLModel, table=True):
     """
     Ridge model
     """
-    __tablename__ = 'ridge'
+
+    __tablename__ = "ridge"
     id: int | None = Field(default=None, primary_key=True)
     slug: str | None = Field(default=None, unique=True, max_length=128)
     name: str = Field(max_length=128)
@@ -112,7 +113,7 @@ class Ridge(SQLModel, table=True):
     def path_to_images(cls):
         media_root = MediaRoot.root()
         _now = datetime.now().strftime("%Y%m%d%H%M")
-        _directory = f'{media_root}/{cls.__name__.lower()}/{_now}'
+        _directory = f"{media_root}/{cls.__name__.lower()}/{_now}"
         try:
             os.makedirs(_directory, exist_ok=True)
             print(f"Folder '{_directory}' created successfully or already existed.")
@@ -135,6 +136,7 @@ class RidgeOut(BaseModel):
     """
     Ridge model for single Ridge response
     """
+
     model_config = ConfigDict(from_attributes=True)
     id: int | None
     slug: str | None
@@ -154,6 +156,7 @@ class RidgeShortOut(BaseModel):
     Ridge model for single Ridge response
     short information
     """
+
     model_config = ConfigDict(from_attributes=True)
     slug: str | None
     name: str = Field(max_length=128)
@@ -164,13 +167,14 @@ class RidgeInfoLink(SQLModel, table=True):
     """
     Ridge Info Link model
     """
-    __tablename__ = 'ridge_info_link'
+
+    __tablename__ = "ridge_info_link"
     id: int | None = Field(default=None, primary_key=True)
     ridge_id: Optional[int] = Field(default=None, foreign_key="ridge.id")
     ridge: Optional[Ridge] = Relationship(back_populates="infolinks")
     link: HttpUrl = Field(
-        index=True, unique=True, nullable=False,
-        sa_type=HttpUrlType, max_length=128)
+        index=True, unique=True, nullable=False, sa_type=HttpUrlType, max_length=128
+    )
     description: str | None = Field(default=None, max_length=128)
 
 
@@ -189,7 +193,8 @@ class Peak(SQLModel, table=True):
     """
     Peak model
     """
-    __tablename__ = 'peak'
+
+    __tablename__ = "peak"
     id: int | None = Field(default=None, primary_key=True)
     slug: str | None = Field(default=None, unique=True, max_length=64)
     ridge_id: Optional[int] = Field(default=None, foreign_key="ridge.id")
@@ -240,6 +245,7 @@ class PeakOut(BaseModel):
     """
     Peak model for single Peak
     """
+
     model_config = ConfigDict(from_attributes=True)
     id: int | None
     slug: str | None
@@ -265,6 +271,7 @@ class PeakShortOut(BaseModel):
     Peak model for single Peak
     short information
     """
+
     model_config = ConfigDict(from_attributes=True)
     id: int | None
     slug: str | None
@@ -285,7 +292,8 @@ class PeakPhoto(SQLModel, table=True):
     """
     Peak Photo model
     """
-    __tablename__ = 'peak_photo'
+
+    __tablename__ = "peak_photo"
     id: int | None = Field(default=None, primary_key=True)
     peak_id: Optional[int] = Field(default=None, foreign_key="peak.id")
     peak: Optional[Peak] = Relationship(back_populates="photos")
@@ -297,7 +305,8 @@ class Route(SQLModel, table=True):
     """
     Route model
     """
-    __tablename__ = 'route'
+
+    __tablename__ = "route"
     id: int | None = Field(default=None, primary_key=True)
     peak_id: Optional[int] = Field(default=None, foreign_key="peak.id")
     peak: Optional[Peak] = Relationship(back_populates="routes")
@@ -364,6 +373,7 @@ class RouteOut(BaseModel):
     """
     Route model
     """
+
     model_config = ConfigDict(from_attributes=True)
     id: int
     peak_id: Optional[int]
@@ -414,6 +424,7 @@ class RouteListItem(BaseModel):
     Route model for single Route
     short information
     """
+
     model_config = ConfigDict(from_attributes=True)
     id: int | None
     slug: str | None
@@ -427,7 +438,8 @@ class RouteSection(SQLModel, table=True):
     """
     Route Section model
     """
-    __tablename__ = 'route_section'
+
+    __tablename__ = "route_section"
     id: int | None = Field(default=None, primary_key=True)
     route_id: Optional[int] = Field(default=None, foreign_key="route.id")
     route: Optional[Route] = Relationship(back_populates="sections")
@@ -451,7 +463,8 @@ class RoutePhoto(SQLModel, table=True):
     """
     Route Photo model
     """
-    __tablename__ = 'route_photo'
+
+    __tablename__ = "route_photo"
     id: int | None = Field(default=None, primary_key=True)
     route_id: Optional[int] = Field(default=None, foreign_key="route.id")
     route: Optional[Route] = Relationship(back_populates="photos")
@@ -463,7 +476,8 @@ class RoutePoint(SQLModel, table=True):
     """
     Route Point model
     """
-    __tablename__ = 'route_point'
+
+    __tablename__ = "route_point"
     id: int | None = Field(default=None, primary_key=True)
     route_id: Optional[int] = Field(default=None, foreign_key="route.id")
     route: Optional[Route] = Relationship(back_populates="routepoints")

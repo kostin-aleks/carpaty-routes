@@ -4,7 +4,7 @@ from sqlmodel import Field, SQLModel
 
 
 class GeoCity(SQLModel, table=True):
-    __tablename__ = 'geo_city'
+    __tablename__ = "geo_city"
     id: int | None = Field(default=None, primary_key=True)
     geonameid: int = Field(default=0, index=True)
     name: str | None = Field(max_length=200, default=None)
@@ -30,7 +30,7 @@ class GeoCity(SQLModel, table=True):
 
 
 class GeoCountry(SQLModel, table=True):
-    __tablename__ = 'geo_country'
+    __tablename__ = "geo_country"
     id: int | None = Field(default=None, primary_key=True)
     geoname_id: int = Field(default=0, index=True)
     name: str | None = Field(max_length=128, default=None)
@@ -48,21 +48,21 @@ class GeoCountry(SQLModel, table=True):
 
 
 class GeoCountryLanguage(SQLModel, table=True):
-    __tablename__ = 'geo_country_language'
+    __tablename__ = "geo_country_language"
     id: int | None = Field(default=None, primary_key=True)
     country_iso3: str = Field(max_length=3, index=True)
     lang_code: str = Field(max_length=10, index=True)
 
 
 class GeoCountryNeighbour(SQLModel, table=True):
-    __tablename__ = 'geo_country_neighbour'
+    __tablename__ = "geo_country_neighbour"
     id: int | None = Field(default=None, primary_key=True)
     country_iso3: str = Field(max_length=3, index=True)
     neighbour_iso: str = Field(max_length=2, index=True)
 
 
 class GeoCountryAdminSubject(SQLModel, table=True):
-    __tablename__ = 'geo_country_subject'
+    __tablename__ = "geo_country_subject"
     id: int | None = Field(default=None, primary_key=True)
     geoname_id: int = Field(default=0, index=True)
     country_iso: str = Field(max_length=2, index=True)
@@ -71,7 +71,7 @@ class GeoCountryAdminSubject(SQLModel, table=True):
 
 
 class GeoRUSSubject(SQLModel, table=True):
-    __tablename__ = 'geo_russia_subject'
+    __tablename__ = "geo_russia_subject"
     id: int | None = Field(default=None, primary_key=True)
     geoname_id: int = Field(default=0, index=True)
     country_iso: str = Field(max_length=2, index=True)
@@ -83,7 +83,7 @@ class GeoRUSSubject(SQLModel, table=True):
 
 
 class GeoUKRSubject(SQLModel, table=True):
-    __tablename__ = 'geo_ukraine_subject'
+    __tablename__ = "geo_ukraine_subject"
     id: int | None = Field(default=None, primary_key=True)
     geoname_id: int = Field(default=0, index=True)
     country_iso: str = Field(max_length=2, index=True)

@@ -45,7 +45,7 @@ def unique_slugify(Cls, text):
     for k in range(100):
         _slug = slug
         if k:
-            _slug = f'{slug}-{k}'
+            _slug = f"{slug}-{k}"
         statement = select(Cls).where(Cls.slug == _slug)
         item = session.exec(statement).first()
         if not item:
@@ -62,17 +62,20 @@ async def get_ridges(session: Session = Depends(get_session)) -> list[Ridge]:
 
 @router.post("/ridges/add", response_model=Ridge)
 async def add_ridge(
-        ridge: RidgeCreate,
-        current_user: Annotated[APIUser, Depends(get_current_active_user)],
-        session: Session = Depends(get_session)) -> Ridge:
+    ridge: RidgeCreate,
+    current_user: Annotated[APIUser, Depends(get_current_active_user)],
+    session: Session = Depends(get_session),
+) -> Ridge:
     if not (current_user.is_admin or current_user.is_editor):
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="No permission for this action")
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="No permission for this action",
+        )
     db_ridge = Ridge(
         name=ridge.name,
         description=ridge.description,
         editor_id=current_user.id,
-        slug=unique_slugify(Ridge, ridge.name)
+        slug=unique_slugify(Ridge, ridge.name),
     )
 
     session.add(db_ridge)
@@ -83,16 +86,25 @@ async def add_ridge(
 
 @router.put("/ridge/{slug}", response_model=Ridge)
 async def update_ridge(
-        slug: str, ridge: RidgeCreate,
-        current_user: Annotated[APIUser, Depends(get_current_active_user)],
-        session: Session = Depends(get_session)) -> Ridge:
+    slug: str,
+    ridge: RidgeCreate,
+    current_user: Annotated[APIUser, Depends(get_current_active_user)],
+    session: Session = Depends(get_session),
+) -> Ridge:
     statement = select(Ridge).where(Ridge.slug == slug)
     db_ridge = session.exec(statement).first()
     if not db_ridge:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Ridge not found")
-    if not (current_user.is_admin or (current_user.is_editor and db_ridge.editor == current_user)):
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="No permission for this action")
+            status_code=status.HTTP_404_NOT_FOUND, detail="Ridge not found"
+        )
+    if not (
+        current_user.is_admin
+        or (current_user.is_editor and db_ridge.editor == current_user)
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="No permission for this action",
+        )
 
     ridge_dict = ridge.model_dump(exclude_unset=True)
     for key, value in ridge_dict.items():
@@ -106,8 +118,7 @@ async def update_ridge(
 
 
 @router.get("/ridge/{slug}")
-async def get_ridge(
-        slug: str, session: Session = Depends(get_session)) -> RidgeOut:
+async def get_ridge(slug: str, session: Session = Depends(get_session)) -> RidgeOut:
     statement = select(Ridge).where(Ridge.slug == slug)
     ridge = session.exec(statement).first()
     if ridge is None:
@@ -119,17 +130,26 @@ async def get_ridge(
 
 @router.post("/ridge/{ridge_id}/add/link", response_model=RidgeInfoLink)
 async def add_ridge_infolink(
-        ridge_id: int, infolink: RidgeInfoLinkCreate,
-        current_user: Annotated[APIUser, Depends(get_current_active_user)],
-        session: Session = Depends(get_session)) -> RidgeInfoLink:
+    ridge_id: int,
+    infolink: RidgeInfoLinkCreate,
+    current_user: Annotated[APIUser, Depends(get_current_active_user)],
+    session: Session = Depends(get_session),
+) -> RidgeInfoLink:
     statement = select(Ridge).where(Ridge.id == ridge_id)
     ridge = session.exec(statement).first()
     if not ridge:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Ridge not found")
-
-    if not (current_user.is_admin or (current_user.is_editor and ridge.editor == current_user)):
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="No permission for this action")
+            status_code=status.HTTP_404_NOT_FOUND, detail="Ridge not found"
+        )
+
+    if not (
+        current_user.is_admin
+        or (current_user.is_editor and ridge.editor == current_user)
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="No permission for this action",
+        )
 
     db_link = RidgeInfoLink(
         ridge_id=ridge.id,
@@ -145,42 +165,58 @@ async def add_ridge_infolink(
 
 @router.delete("/ridge/{slug}")
 async def delete_ridge(
-        slug: str, current_user: Annotated[APIUser, Depends(get_current_active_user)],
-        session: Session = Depends(get_session)) -> ResponceStatus:
+    slug: str,
+    current_user: Annotated[APIUser, Depends(get_current_active_user)],
+    session: Session = Depends(get_session),
+) -> ResponceStatus:
     statement = select(Ridge).where(Ridge.slug == slug)
     ridge = session.exec(statement).first()
     if ridge is None:
         raise HTTPException(status_code=404, detail="Ridge not found")
-    if not (current_user.is_admin or (current_user.is_editor and ridge.editor == current_user)):
+    if not (
+        current_user.is_admin
+        or (current_user.is_editor and ridge.editor == current_user)
+    ):
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="No permission for this action")
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="No permission for this action",
+        )
     session.delete(ridge)
     session.commit()
 
-    return ResponceStatus(status=True, message=f'Ridge {slug} deleted succesfully')
+    return ResponceStatus(status=True, message=f"Ridge {slug} deleted succesfully")
 
 
 @router.delete("/ridge/link/{id}")
 async def delete_ridge_link(
-        id: int, current_user: Annotated[APIUser, Depends(get_current_active_user)],
-        session: Session = Depends(get_session)) -> ResponceStatus:
+    id: int,
+    current_user: Annotated[APIUser, Depends(get_current_active_user)],
+    session: Session = Depends(get_session),
+) -> ResponceStatus:
     statement = select(RidgeInfoLink).where(RidgeInfoLink.id == id)
     link = session.exec(statement).first()
     if link is None:
         raise HTTPException(status_code=404, detail="Ridge info link not found")
-    if not (current_user.is_admin
-            or (current_user.is_editor and link.ridge.editor == current_user)):
+    if not (
+        current_user.is_admin
+        or (current_user.is_editor and link.ridge.editor == current_user)
+    ):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="No permission for this action")
+            detail="No permission for this action",
+        )
     session.delete(link)
     session.commit()
 
-    return ResponceStatus(status=True, message=f'Ridge link with id={id} deleted succesfully')
+    return ResponceStatus(
+        status=True, message=f"Ridge link with id={id} deleted succesfully"
+    )
 
 
 @router.get("/ridge/peaks/{slug}", response_model=list[PeakShortOut])
-async def get_ridge_peaks(slug: str, session: Session = Depends(get_session)) -> list[PeakShortOut]:
+async def get_ridge_peaks(
+    slug: str, session: Session = Depends(get_session)
+) -> list[PeakShortOut]:
     statement = select(Ridge).where(Ridge.slug == slug)
     ridge = session.exec(statement).first()
     if ridge is None:
@@ -201,8 +237,9 @@ async def get_peaks(session: Session = Depends(get_session)) -> list[Peak]:
 
 @router.get("/peaks/search", response_model=list[PeakOut])
 async def search_peak(
-        q: Annotated[str | None, Query(max_length=50)] = None,
-        session: Session = Depends(get_session)) -> list[PeakOut]:
+    q: Annotated[str | None, Query(max_length=50)] = None,
+    session: Session = Depends(get_session),
+) -> list[PeakOut]:
     statement = select(Peak)
     if q:
         statement = statement.where(Peak.slug.contains(q) | Peak.name.contains(q))
@@ -212,8 +249,7 @@ async def search_peak(
 
 
 @router.get("/peak/{slug}", response_model=PeakOut)
-async def get_peak(
-        slug: str, session: Session = Depends(get_session)) -> PeakOut:
+async def get_peak(slug: str, session: Session = Depends(get_session)) -> PeakOut:
     statement = select(Peak).where(Peak.slug == slug)
     peak = session.exec(statement).first()
     if peak is None:
@@ -225,12 +261,15 @@ async def get_peak(
 
 @router.post("/peaks/add", response_model=Peak)
 async def add_peak(
-        peak: PeakCreate,
-        current_user: Annotated[APIUser, Depends(get_current_active_user)],
-        session: Session = Depends(get_session)) -> Peak:
+    peak: PeakCreate,
+    current_user: Annotated[APIUser, Depends(get_current_active_user)],
+    session: Session = Depends(get_session),
+) -> Peak:
     if not (current_user.is_admin or current_user.is_editor):
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="No permission for this action")
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="No permission for this action",
+        )
     point_id = None
     if peak.point:
         db_point = GeoPoint(
@@ -249,7 +288,7 @@ async def add_peak(
         ridge_id=peak.ridge_id,
         height=peak.height,
         point_id=point_id,
-        editor_id=current_user.id
+        editor_id=current_user.id,
     )
 
     session.add(db_peak)
@@ -260,29 +299,36 @@ async def add_peak(
 
 @router.post("/peak/{peak_id}/add/photo", response_model=PeakPhoto)
 async def add_peak_photo(
-        peak_id: int, file: UploadFile, description: str | None,
-        current_user: Annotated[APIUser, Depends(get_current_active_user)],
-        session: Session = Depends(get_session)) -> PeakPhoto:
+    peak_id: int,
+    file: UploadFile,
+    description: str | None,
+    current_user: Annotated[APIUser, Depends(get_current_active_user)],
+    session: Session = Depends(get_session),
+) -> PeakPhoto:
     statement = select(Peak).where(Peak.id == peak_id)
     peak = session.exec(statement).first()
     if not peak:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Peak not found")
-    if not (current_user.is_admin or (current_user.is_editor and peak.editor == current_user)):
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="No permission for this action")
+            status_code=status.HTTP_404_NOT_FOUND, detail="Peak not found"
+        )
+    if not (
+        current_user.is_admin
+        or (current_user.is_editor and peak.editor == current_user)
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="No permission for this action",
+        )
 
     image_dir = Peak.path_to_images()
     try:
         file_path = f"{image_dir}/{file.filename}"
-        with open(file_path, 'wb') as f:
+        with open(file_path, "wb") as f:
             f.write(file.file.read())
             # return {'message': 'File saved successfully', 'success': True}
         _path = Peak.db_path_to_images()
-        photo_path = f'{_path}/{file.filename}'
-        image = PeakPhoto(
-            peak_id=peak_id,
-            photo=photo_path,
-            description=description)
+        photo_path = f"{_path}/{file.filename}"
+        image = PeakPhoto(peak_id=peak_id, photo=photo_path, description=description)
 
         session.add(image)
         session.commit()
@@ -291,25 +337,34 @@ async def add_peak_photo(
         return image
 
     except Exception as e:
-        return {'message': e.args, 'success': False}
+        return {"message": e.args, "success": False}
 
 
 @router.put("/peak/{slug}", response_model=Peak)
 async def update_peak(
-        slug: str, peak: PeakCreate,
-        current_user: Annotated[APIUser, Depends(get_current_active_user)],
-        session: Session = Depends(get_session)) -> Peak:
+    slug: str,
+    peak: PeakCreate,
+    current_user: Annotated[APIUser, Depends(get_current_active_user)],
+    session: Session = Depends(get_session),
+) -> Peak:
     statement = select(Peak).where(Peak.slug == slug)
     db_peak = session.exec(statement).first()
     if not db_peak:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Peak not found")
-    if not (current_user.is_admin or (current_user.is_editor and db_peak.editor == current_user)):
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="No permission for this action")
+            status_code=status.HTTP_404_NOT_FOUND, detail="Peak not found"
+        )
+    if not (
+        current_user.is_admin
+        or (current_user.is_editor and db_peak.editor == current_user)
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="No permission for this action",
+        )
 
     peak_dict = peak.model_dump(exclude_unset=True)
     for key, value in peak_dict.items():
-        if key == 'point_id':
+        if key == "point_id":
             continue
         setattr(db_peak, key, value)
 
@@ -334,25 +389,34 @@ async def update_peak(
 
 @router.put("/peak/{peak_id}/photo", response_model=Peak)
 async def update_peak_photo(
-        peak_id: int, file: UploadFile,
-        current_user: Annotated[APIUser, Depends(get_current_active_user)],
-        session: Session = Depends(get_session)) -> Peak:
+    peak_id: int,
+    file: UploadFile,
+    current_user: Annotated[APIUser, Depends(get_current_active_user)],
+    session: Session = Depends(get_session),
+) -> Peak:
     statement = select(Peak).where(Peak.id == peak_id)
     peak = session.exec(statement).first()
     if not peak:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Peak not found")
-    if not (current_user.is_admin or (current_user.is_editor and peak.editor == current_user)):
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="No permission for this action")
+            status_code=status.HTTP_404_NOT_FOUND, detail="Peak not found"
+        )
+    if not (
+        current_user.is_admin
+        or (current_user.is_editor and peak.editor == current_user)
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="No permission for this action",
+        )
 
     image_dir = Peak.path_to_images()
     try:
         file_path = f"{image_dir}/{file.filename}"
-        with open(file_path, 'wb') as f:
+        with open(file_path, "wb") as f:
             f.write(file.file.read())
 
         _path = Peak.db_path_to_images()
-        photo_path = f'{_path}/{file.filename}'
+        photo_path = f"{_path}/{file.filename}"
         peak.photo = photo_path
 
         session.add(peak)
@@ -362,52 +426,63 @@ async def update_peak_photo(
         return peak
 
     except Exception as e:
-        return {'message': e.args, 'success': False}
+        return {"message": e.args, "success": False}
 
 
 @router.delete("/peak/{slug}")
 async def delete_peak(
-        slug: str, current_user: Annotated[APIUser, Depends(get_current_active_user)],
-        session: Session = Depends(get_session)) -> ResponceStatus:
+    slug: str,
+    current_user: Annotated[APIUser, Depends(get_current_active_user)],
+    session: Session = Depends(get_session),
+) -> ResponceStatus:
     statement = select(Peak).where(Peak.slug == slug)
     peak = session.exec(statement).first()
     if peak is None:
         raise HTTPException(status_code=404, detail="Peak not found")
-    if not (current_user.is_admin
-            or (current_user.is_editor and peak.editor == current_user)):
+    if not (
+        current_user.is_admin
+        or (current_user.is_editor and peak.editor == current_user)
+    ):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="No permission for this action")
+            detail="No permission for this action",
+        )
     session.delete(peak)
     session.commit()
 
-    return ResponceStatus(status=True, message=f'Peak {slug} deleted succesfully')
+    return ResponceStatus(status=True, message=f"Peak {slug} deleted succesfully")
 
 
 @router.delete("/peak/photo/{id}")
 async def delete_peak_photo(
-        id: int, current_user: Annotated[APIUser, Depends(get_current_active_user)],
-        session: Session = Depends(get_session)) -> ResponceStatus:
+    id: int,
+    current_user: Annotated[APIUser, Depends(get_current_active_user)],
+    session: Session = Depends(get_session),
+) -> ResponceStatus:
     statement = select(PeakPhoto).where(PeakPhoto.id == id)
     photo = session.exec(statement).first()
     if photo is None:
         raise HTTPException(status_code=404, detail="Peak photo not found")
-    if not (current_user.is_admin
-            or (current_user.is_editor and photo.peak.editor == current_user)):
+    if not (
+        current_user.is_admin
+        or (current_user.is_editor and photo.peak.editor == current_user)
+    ):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="No permission for this action")
+            detail="No permission for this action",
+        )
     session.delete(photo)
     session.commit()
 
     return ResponceStatus(
-        status=True, message=f'Peak photo with id={id} deleted succesfully')
+        status=True, message=f"Peak photo with id={id} deleted succesfully"
+    )
 
 
 @router.get("/peak/routes/{slug}", response_model=list[RouteListItem])
 async def get_peak_routes(
-        slug: str,
-        session: Session = Depends(get_session)) -> list[RouteListItem]:
+    slug: str, session: Session = Depends(get_session)
+) -> list[RouteListItem]:
     statement = select(Peak).where(Peak.slug == slug)
     peak = session.exec(statement).first()
     if peak is None:
@@ -426,10 +501,11 @@ async def get_routes(session: Session = Depends(get_session)) -> list[Route]:
 
 @router.get("/routes/search", response_model=list[RouteListItem])
 async def search_route(
-        q: Annotated[str | None, Query(max_length=50)] = None,
-        author: Annotated[str | None, Query(max_length=50)] = None,
-        category: Annotated[str | None, Query(max_length=50)] = None,
-        session: Session = Depends(get_session)) -> list[RouteListItem]:
+    q: Annotated[str | None, Query(max_length=50)] = None,
+    author: Annotated[str | None, Query(max_length=50)] = None,
+    category: Annotated[str | None, Query(max_length=50)] = None,
+    session: Session = Depends(get_session),
+) -> list[RouteListItem]:
     statement = select(Route)
     if q:
         statement = statement.where(Route.slug.contains(q) | Route.name.contains(q))
@@ -455,12 +531,15 @@ async def get_route(slug: str, session: Session = Depends(get_session)) -> Route
 
 @router.post("/routes/add", response_model=Route)
 async def add_route(
-        route: RouteCreate,
-        current_user: Annotated[APIUser, Depends(get_current_active_user)],
-        session: Session = Depends(get_session)) -> Route:
+    route: RouteCreate,
+    current_user: Annotated[APIUser, Depends(get_current_active_user)],
+    session: Session = Depends(get_session),
+) -> Route:
     if not (current_user.is_admin or current_user.is_editor):
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="No permission for this action")
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="No permission for this action",
+        )
 
     db_route = Route(
         name=route.name,
@@ -488,16 +567,24 @@ async def add_route(
 
 @router.post("/routes/add/section", response_model=RouteSection)
 async def add_route_section(
-        section: RouteSectionCreate,
-        current_user: Annotated[APIUser, Depends(get_current_active_user)],
-        session: Session = Depends(get_session)) -> RouteSection:
+    section: RouteSectionCreate,
+    current_user: Annotated[APIUser, Depends(get_current_active_user)],
+    session: Session = Depends(get_session),
+) -> RouteSection:
     statement = select(Route).where(Route.id == section.route_id)
     route = session.exec(statement).first()
     if route is None:
-        raise HTTPException(status_code=404, detail="Route id='{section.route_id}' not found")
-    if not (current_user.is_admin or (current_user.is_editor and route.editor == current_user)):
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="No permission for this action")
+            status_code=404, detail="Route id='{section.route_id}' not found"
+        )
+    if not (
+        current_user.is_admin
+        or (current_user.is_editor and route.editor == current_user)
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="No permission for this action",
+        )
 
     db_section = RouteSection(
         num=section.num,
@@ -516,16 +603,24 @@ async def add_route_section(
 
 @router.post("/routes/add/point", response_model=RoutePoint)
 async def add_route_point(
-        point: RoutePointCreate,
-        current_user: Annotated[APIUser, Depends(get_current_active_user)],
-        session: Session = Depends(get_session)) -> RoutePoint:
+    point: RoutePointCreate,
+    current_user: Annotated[APIUser, Depends(get_current_active_user)],
+    session: Session = Depends(get_session),
+) -> RoutePoint:
     statement = select(Route).where(Route.id == point.route_id)
     route = session.exec(statement).first()
     if route is None:
-        raise HTTPException(status_code=404, detail="Route id='{section.route_id}' not found")
-    if not (current_user.is_admin or (current_user.is_editor and route.editor == current_user)):
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="No permission for this action")
+            status_code=404, detail="Route id='{section.route_id}' not found"
+        )
+    if not (
+        current_user.is_admin
+        or (current_user.is_editor and route.editor == current_user)
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="No permission for this action",
+        )
     point_id = None
     if point.point:
         _db_point = GeoPoint(
@@ -551,29 +646,36 @@ async def add_route_point(
 
 @router.post("/route/{route_id}/add/photo", response_model=RoutePhoto)
 async def add_route_photo(
-        route_id: int, file: UploadFile, description: str | None,
-        current_user: Annotated[APIUser, Depends(get_current_active_user)],
-        session: Session = Depends(get_session)) -> RoutePhoto:
+    route_id: int,
+    file: UploadFile,
+    description: str | None,
+    current_user: Annotated[APIUser, Depends(get_current_active_user)],
+    session: Session = Depends(get_session),
+) -> RoutePhoto:
     statement = select(Route).where(Route.id == route_id)
     route = session.exec(statement).first()
     if not route:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Route not found")
-    if not (current_user.is_admin or (current_user.is_editor and route.editor == current_user)):
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="No permission for this action")
+            status_code=status.HTTP_404_NOT_FOUND, detail="Route not found"
+        )
+    if not (
+        current_user.is_admin
+        or (current_user.is_editor and route.editor == current_user)
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="No permission for this action",
+        )
 
     image_dir = Route.path_to_images()
     try:
         file_path = f"{image_dir}/{file.filename}"
-        with open(file_path, 'wb') as f:
+        with open(file_path, "wb") as f:
             f.write(file.file.read())
 
         _path = Route.db_path_to_images()
-        photo_path = f'{_path}/{file.filename}'
-        image = RoutePhoto(
-            route_id=route_id,
-            photo=photo_path,
-            description=description)
+        photo_path = f"{_path}/{file.filename}"
+        image = RoutePhoto(route_id=route_id, photo=photo_path, description=description)
 
         session.add(image)
         session.commit()
@@ -582,30 +684,39 @@ async def add_route_photo(
         return image
 
     except Exception as e:
-        return {'message': e.args, 'success': False}
+        return {"message": e.args, "success": False}
 
 
 @router.put("/route/{route_id}/map", response_model=Route)
 async def update_route_map(
-        route_id: int, file: UploadFile,
-        current_user: Annotated[APIUser, Depends(get_current_active_user)],
-        session: Session = Depends(get_session)) -> Route:
+    route_id: int,
+    file: UploadFile,
+    current_user: Annotated[APIUser, Depends(get_current_active_user)],
+    session: Session = Depends(get_session),
+) -> Route:
     statement = select(Route).where(Route.id == route_id)
     route = session.exec(statement).first()
     if not route:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Route not found")
-    if not (current_user.is_admin or (current_user.is_editor and route.editor == current_user)):
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="No permission for this action")
+            status_code=status.HTTP_404_NOT_FOUND, detail="Route not found"
+        )
+    if not (
+        current_user.is_admin
+        or (current_user.is_editor and route.editor == current_user)
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="No permission for this action",
+        )
 
     image_dir = Route.path_to_images()
     try:
         file_path = f"{image_dir}/{file.filename}"
-        with open(file_path, 'wb') as f:
+        with open(file_path, "wb") as f:
             f.write(file.file.read())
 
         _path = Route.db_path_to_images()
-        photo_path = f'{_path}/{file.filename}'
+        photo_path = f"{_path}/{file.filename}"
         route.map_image = photo_path
 
         session.add(route)
@@ -615,30 +726,39 @@ async def update_route_map(
         return route
 
     except Exception as e:
-        return {'message': e.args, 'success': False}
+        return {"message": e.args, "success": False}
 
 
 @router.put("/route/{route_id}/photo", response_model=Route)
 async def update_route_photo(
-        route_id: int, file: UploadFile,
-        current_user: Annotated[APIUser, Depends(get_current_active_user)],
-        session: Session = Depends(get_session)) -> Peak:
+    route_id: int,
+    file: UploadFile,
+    current_user: Annotated[APIUser, Depends(get_current_active_user)],
+    session: Session = Depends(get_session),
+) -> Peak:
     statement = select(Route).where(Route.id == route_id)
     route = session.exec(statement).first()
     if not route:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Route not found")
-    if not (current_user.is_admin or (current_user.is_editor and route.editor == current_user)):
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="No permission for this action")
+            status_code=status.HTTP_404_NOT_FOUND, detail="Route not found"
+        )
+    if not (
+        current_user.is_admin
+        or (current_user.is_editor and route.editor == current_user)
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="No permission for this action",
+        )
 
     image_dir = Route.path_to_images()
     try:
         file_path = f"{image_dir}/{file.filename}"
-        with open(file_path, 'wb') as f:
+        with open(file_path, "wb") as f:
             f.write(file.file.read())
 
         _path = Route.db_path_to_images()
-        photo_path = f'{_path}/{file.filename}'
+        photo_path = f"{_path}/{file.filename}"
         route.photo = photo_path
 
         session.add(route)
@@ -648,21 +768,30 @@ async def update_route_photo(
         return route
 
     except Exception as e:
-        return {'message': e.args, 'success': False}
+        return {"message": e.args, "success": False}
 
 
 @router.put("/route/{route_id}", response_model=Route)
 async def update_route(
-        route_id: int, route: RouteCreate,
-        current_user: Annotated[APIUser, Depends(get_current_active_user)],
-        session: Session = Depends(get_session)) -> Route:
+    route_id: int,
+    route: RouteCreate,
+    current_user: Annotated[APIUser, Depends(get_current_active_user)],
+    session: Session = Depends(get_session),
+) -> Route:
     statement = select(Route).where(Route.id == route_id)
     db_route = session.exec(statement).first()
     if not db_route:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Route not found")
-    if not (current_user.is_admin or (current_user.is_editor and db_route.editor == current_user)):
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="No permission for this action")
+            status_code=status.HTTP_404_NOT_FOUND, detail="Route not found"
+        )
+    if not (
+        current_user.is_admin
+        or (current_user.is_editor and db_route.editor == current_user)
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="No permission for this action",
+        )
 
     route_dict = route.model_dump(exclude_unset=True)
     for key, value in route_dict.items():
@@ -677,18 +806,25 @@ async def update_route(
 
 @router.put("/route/section/{section_id}", response_model=RouteSection)
 async def update_route_section(
-        section_id: int, section: RouteSectionCreate,
-        current_user: Annotated[APIUser, Depends(get_current_active_user)],
-        session: Session = Depends(get_session)) -> RouteSection:
+    section_id: int,
+    section: RouteSectionCreate,
+    current_user: Annotated[APIUser, Depends(get_current_active_user)],
+    session: Session = Depends(get_session),
+) -> RouteSection:
     statement = select(RouteSection).where(RouteSection.id == section_id)
     db_section = session.exec(statement).first()
     if not db_section:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Route section not found")
-    if not (current_user.is_admin
-            or (current_user.is_editor and db_section.route.editor == current_user)):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Route section not found"
+        )
+    if not (
+        current_user.is_admin
+        or (current_user.is_editor and db_section.route.editor == current_user)
+    ):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="No permission for this action")
+            detail="No permission for this action",
+        )
 
     section_dict = section.model_dump(exclude_unset=True)
     for key, value in section_dict.items():
@@ -703,58 +839,77 @@ async def update_route_section(
 
 @router.delete("/route/{slug}")
 async def delete_route(
-        slug: str, current_user: Annotated[APIUser, Depends(get_current_active_user)],
-        session: Session = Depends(get_session)) -> ResponceStatus:
+    slug: str,
+    current_user: Annotated[APIUser, Depends(get_current_active_user)],
+    session: Session = Depends(get_session),
+) -> ResponceStatus:
     statement = select(Route).where(Route.slug == slug)
     route = session.exec(statement).first()
     if route is None:
         raise HTTPException(status_code=404, detail="Route not found")
-    if not (current_user.is_admin
-            or (current_user.is_editor and route.editor == current_user)):
+    if not (
+        current_user.is_admin
+        or (current_user.is_editor and route.editor == current_user)
+    ):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="No permission for this action")
+            detail="No permission for this action",
+        )
 
     session.delete(route)
     session.commit()
 
-    return ResponceStatus(status=True, message=f'Route {slug} deleted succesfully')
+    return ResponceStatus(status=True, message=f"Route {slug} deleted succesfully")
 
 
 @router.delete("/route/point/{id}")
 async def delete_route_point(
-        id: int, current_user: Annotated[APIUser, Depends(get_current_active_user)],
-        session: Session = Depends(get_session)) -> ResponceStatus:
+    id: int,
+    current_user: Annotated[APIUser, Depends(get_current_active_user)],
+    session: Session = Depends(get_session),
+) -> ResponceStatus:
     statement = select(RoutePoint).where(RoutePoint.id == id)
     point = session.exec(statement).first()
     if point is None:
         raise HTTPException(status_code=404, detail="Route point not found")
-    if not (current_user.is_admin
-            or (current_user.is_editor and point.route.editor == current_user)):
+    if not (
+        current_user.is_admin
+        or (current_user.is_editor and point.route.editor == current_user)
+    ):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="No permission for this action")
+            detail="No permission for this action",
+        )
 
     session.delete(point)
     session.commit()
 
-    return ResponceStatus(status=True, message=f'Route point with id={id} deleted succesfully')
+    return ResponceStatus(
+        status=True, message=f"Route point with id={id} deleted succesfully"
+    )
 
 
 @router.delete("/route/section/{id}")
 async def delete_route_section(
-        id: int, current_user: Annotated[APIUser, Depends(get_current_active_user)],
-        session: Session = Depends(get_session)) -> ResponceStatus:
+    id: int,
+    current_user: Annotated[APIUser, Depends(get_current_active_user)],
+    session: Session = Depends(get_session),
+) -> ResponceStatus:
     statement = select(RouteSection).where(RouteSection.id == id)
     section = session.exec(statement).first()
     if section is None:
         raise HTTPException(status_code=404, detail="Route section not found")
-    if not (current_user.is_admin
-            or (current_user.is_editor and section.route.editor == current_user)):
+    if not (
+        current_user.is_admin
+        or (current_user.is_editor and section.route.editor == current_user)
+    ):
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="No permission for this action")
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="No permission for this action",
+        )
     session.delete(section)
     session.commit()
 
     return ResponceStatus(
-        status=True, message=f'Route section with id={id} deleted succesfully')
+        status=True, message=f"Route section with id={id} deleted succesfully"
+    )

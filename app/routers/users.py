@@ -21,11 +21,11 @@ from app.models.users import (
     UserUpdate,
 )
 
-config = Config('.env')
+config = Config(".env")
 
-_secret_key = config('SECRET_KEY', cast=str)
-_algorithm = config('ALGORITHM', cast=str)
-_access_token_expire_minutes = config('ACCESS_TOKEN_EXPIRE_MINUTES', cast=int)
+_secret_key = config("SECRET_KEY", cast=str)
+_algorithm = config("ALGORITHM", cast=str)
+_access_token_expire_minutes = config("ACCESS_TOKEN_EXPIRE_MINUTES", cast=int)
 
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -76,8 +76,7 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     return encoded_jwt
 
 
-async def get_current_user(
-        token: Annotated[str, Depends(oauth2_scheme)]):
+async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -100,7 +99,8 @@ async def get_current_user(
 
 
 async def get_current_active_user(
-        current_user: Annotated[APIUser, Depends(get_current_user)]):
+    current_user: Annotated[APIUser, Depends(get_current_user)]
+):
     if not current_user.is_active:
         raise HTTPException(status_code=400, detail="Inactive user")
     return current_user
@@ -108,7 +108,8 @@ async def get_current_active_user(
 
 @router.post("/token")
 async def login_for_access_token(
-        form_data: Annotated[OAuth2PasswordRequestForm, Depends()],) -> Token:
+    form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
+) -> Token:
     user = authenticate_user(form_data.username, form_data.password)
     if not user:
         raise HTTPException(
@@ -125,26 +126,30 @@ async def login_for_access_token(
 
 @router.get("/me/", response_model=APIUser)
 async def read_users_me(
-        current_user: Annotated[APIUser, Depends(get_current_active_user)]):
+    current_user: Annotated[APIUser, Depends(get_current_active_user)]
+):
     return current_user
 
 
 @router.post("/register/", response_model=APIUser)
-async def register_user(user: UserCreate, session: Session = Depends(get_session)) -> APIUser:
+async def register_user(
+    user: UserCreate, session: Session = Depends(get_session)
+) -> APIUser:
     # Check for existing user
     statement = select(APIUser).where(APIUser.username == user.username)
     db_user = session.exec(statement).first()
     if db_user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Username already registered")
+            detail="Username already registered",
+        )
 
     statement = select(APIUser).where(APIUser.email == user.email)
     db_user = session.exec(statement).first()
     if db_user:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Email already registered")
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered"
+        )
 
     hashed_password = get_password_hash(user.password)
     db_user = APIUser(
@@ -164,14 +169,18 @@ async def register_user(user: UserCreate, session: Session = Depends(get_session
 
 @router.put("/update/{id}", response_model=APIUser)
 async def update_user(
-        id: int, user: UserUpdate,
-        current_user: Annotated[APIUser, Depends(get_current_active_user)],
-        session: Session = Depends(get_session)) -> APIUser:
+    id: int,
+    user: UserUpdate,
+    current_user: Annotated[APIUser, Depends(get_current_active_user)],
+    session: Session = Depends(get_session),
+) -> APIUser:
     # Check for existing user
     statement = select(APIUser).where(APIUser.id == id)
     db_user = session.exec(statement).first()
     if not db_user or db_user.username != user.username:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+        )
 
     user_dict = user.model_dump(exclude_unset=True)
     for key, value in user_dict.items():
@@ -181,23 +190,29 @@ async def update_user(
     session.commit()
     session.refresh(db_user)
 
-    return(db_user)
+    return db_user
 
 
 @router.put("/set/permissions/{id}", response_model=APIUser)
 async def set_user_permissions(
-        id: int, data: UserPermission,
-        current_user: Annotated[APIUser, Depends(get_current_active_user)],
-        session: Session = Depends(get_session)) -> APIUser:
+    id: int,
+    data: UserPermission,
+    current_user: Annotated[APIUser, Depends(get_current_active_user)],
+    session: Session = Depends(get_session),
+) -> APIUser:
     # Check for existing user
     statement = select(APIUser).where(APIUser.id == id)
     db_user = session.exec(statement).first()
     if not db_user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+        )
     # check permission
     if not current_user.is_admin:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="No permission for this action")
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="No permission for this action",
+        )
 
     data_dict = data.model_dump(exclude_unset=True)
     for key, value in data_dict.items():
@@ -207,42 +222,48 @@ async def set_user_permissions(
     session.commit()
     session.refresh(db_user)
 
-    return(db_user)
+    return db_user
 
 
 @router.put("/email/update", response_model=APIUser)
 async def update_user_email(
-        user: UserEmailUpdate,
-        current_user: Annotated[APIUser, Depends(get_current_active_user)],
-        session: Session = Depends(get_session)) -> APIUser:
+    user: UserEmailUpdate,
+    current_user: Annotated[APIUser, Depends(get_current_active_user)],
+    session: Session = Depends(get_session),
+) -> APIUser:
     # Check for existing user
     statement = select(APIUser).where(APIUser.email == user.email)
     db_user = session.exec(statement).first()
     if not db_user or db_user.username != user.username:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="User not found")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="User not found"
+        )
 
     db_user.email = user.new_email
     session.add(db_user)
     session.commit()
     session.refresh(db_user)
 
-    return(db_user)
+    return db_user
 
 
 @router.put("/password/update", response_model=APIUser)
 async def update_user_password(
-        user: UserPasswordUpdate,
-        current_user: Annotated[APIUser, Depends(get_current_active_user)],
-        session: Session = Depends(get_session)) -> APIUser:
+    user: UserPasswordUpdate,
+    current_user: Annotated[APIUser, Depends(get_current_active_user)],
+    session: Session = Depends(get_session),
+) -> APIUser:
     # Check for existing user
     statement = select(APIUser).where(APIUser.username == user.username)
     db_user = session.exec(statement).first()
     if not (db_user and verify_password(user.password, db_user.password)):
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="User not found")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="User not found"
+        )
 
     db_user.password = get_password_hash(user.new_password)
     session.add(db_user)
     session.commit()
     session.refresh(db_user)
 
-    return(db_user)
+    return db_user

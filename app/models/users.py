@@ -6,7 +6,7 @@ from sqlmodel import Field, SQLModel
 
 
 class APIUser(SQLModel, table=True):
-    __tablename__ = 'api_user'
+    __tablename__ = "api_user"
     id: int | None = Field(default=None, primary_key=True)
     username: str = Field(max_length=128, unique=True, index=True)
     email: str = Field(max_length=255, unique=True, index=True)
@@ -18,6 +18,7 @@ class APIUser(SQLModel, table=True):
     is_editor: bool = Field(default=False)
     is_active: bool = Field(default=False)
     date_joined: datetime = Field(default_factory=datetime.utcnow)
+
 
 #     ridges: List["Ridge"] = Relationship(back_populates="user")
 #     peaks: List["Peak"] = Relationship(back_populates="user")
