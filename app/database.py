@@ -4,7 +4,7 @@
 
 from sqlmodel import Session, create_engine
 
-from app.settings import config
+from .settings import config
 
 # Database configurations
 _USER = config("DB_USER", cast=str)

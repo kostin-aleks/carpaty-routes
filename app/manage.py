@@ -1,11 +1,13 @@
 """
 Manage commands
 """
-
+import inspect
+from pathlib import Path
+import sys
 import typer
 from sqlalchemy.orm import Session
 
-from database import get_session
+#from database import get_session
 from dependencies import get_password_hash
 from models.users import APIUser
 
@@ -16,6 +18,19 @@ app = typer.Typer()
 def hello(txt: str):
     """test command"""
     print(f"HELLO {txt}")
+
+
+@app.command()
+def commands():
+    """list of commands"""
+    _imported = ('get_password_hash')
+    _list = [
+        f[0] for f
+        in inspect.getmembers(sys.modules['__main__'], inspect.isfunction)
+        if f[0] not in _imported
+    ]
+    for item in _list:
+        print(item)
 
 
 @app.command()
@@ -38,4 +53,5 @@ def create_admin(name: str, password: str, email: str):
 
 
 if __name__ == "__main__":
+
     app()
