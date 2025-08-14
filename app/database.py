@@ -1,9 +1,10 @@
 """
 конфигурация соединения с базой данных
 """
+
 from sqlmodel import Session, create_engine
 
-from .settings import config
+from app.settings import config
 
 # Database configurations
 _USER = config("DB_USER", cast=str)

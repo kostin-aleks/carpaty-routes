@@ -1,14 +1,15 @@
 """
 Router Mountains
 """
+
 from datetime import datetime, timedelta, timezone
+from app.dependencies import verify_password, get_password_hash
 from typing import Annotated
 
 import jwt
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jwt.exceptions import InvalidTokenError
-from passlib.context import CryptContext
 from sqlmodel import Session, select
 from starlette.config import Config
 
@@ -31,8 +32,6 @@ _ALGORITHM = config("ALGORITHM", cast=str)
 _ACCESS_TOKEN_EXPIRE_MINUTES = config("ACCESS_TOKEN_EXPIRE_MINUTES", cast=int)
 
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="users/token")
 
 router = APIRouter(
@@ -41,16 +40,6 @@ router = APIRouter(
     # dependencies=[Depends(get_token_header)],
     responses={404: {"description": "Not found"}},
 )
-
-
-def verify_password(plain_password, hashed_password):
-    """verify password"""
-    return pwd_context.verify(plain_password, hashed_password)
-
-
-def get_password_hash(password):
-    """create and return hash of password"""
-    return pwd_context.hash(password)
 
 
 def get_user(username: str):
@@ -101,7 +90,7 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
         raise credentials_exception
 
     user = get_user(username=token_data.username)
-    print(user, type(user))
+
     if user is None:
         raise credentials_exception
     return user
