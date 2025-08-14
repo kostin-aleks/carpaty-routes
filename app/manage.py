@@ -12,7 +12,7 @@ from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 from sqlmodel import select
 
-from dependencies import get_password_hash, get_session
+from dependencies import config, get_password_hash, get_session
 from models.users import APIUser
 
 app = typer.Typer()
@@ -76,6 +76,33 @@ def change_password(username: str):
     db.refresh(user)
 
     print(f"Changed user's password")
+
+
+@app.command()
+def add_test_user():
+    """add test user"""
+    db: Session = next(get_session())
+
+    statement = select(APIUser).where(
+        APIUser.username == config("TEST_USERNAME", cast=str)
+    )
+    user = db.exec(statement).first()
+
+    if not user:
+        hashed_password = get_password_hash(config("TEST_PASSWORD", cast=str))
+        user = APIUser(
+            username=config("TEST_USERNAME", cast=str),
+            email=config("TEST_EMAIL", cast=str),
+            password=hashed_password,
+            first_name="Ivan",
+            last_name="Ivanov",
+        )
+
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+
+    print(f"Test user {user.username} is ready to test")
 
 
 if __name__ == "__main__":
