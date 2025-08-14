@@ -1,14 +1,18 @@
 """
 Manage commands
 """
-import inspect
-from pathlib import Path
-import sys
-import typer
-from sqlalchemy.orm import Session
 
-#from database import get_session
-from dependencies import get_password_hash
+import inspect
+import sys
+from pathlib import Path
+
+import pwinput
+import typer
+from fastapi import HTTPException, status
+from sqlalchemy.orm import Session
+from sqlmodel import select
+
+from dependencies import get_password_hash, get_session
 from models.users import APIUser
 
 app = typer.Typer()
@@ -23,10 +27,10 @@ def hello(txt: str):
 @app.command()
 def commands():
     """list of commands"""
-    _imported = ('get_password_hash')
+    _imported = ("get_password_hash", "get_session")
     _list = [
-        f[0] for f
-        in inspect.getmembers(sys.modules['__main__'], inspect.isfunction)
+        f[0].replace("_", "-")
+        for f in inspect.getmembers(sys.modules["__main__"], inspect.isfunction)
         if f[0] not in _imported
     ]
     for item in _list:
@@ -50,6 +54,28 @@ def create_admin(name: str, password: str, email: str):
     db.refresh(user)
 
     print(f"Created admin user {name}")
+
+
+@app.command()
+def change_password(username: str):
+    """change user's password"""
+    db: Session = next(get_session())
+
+    statement = select(APIUser).where(APIUser.username == username)
+    user = db.exec(statement).first()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Username not found",
+        )
+    password = pwinput.pwinput(prompt="Password: ", mask="*")
+    user.password = get_password_hash(password)
+
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+
+    print(f"Changed user's password")
 
 
 if __name__ == "__main__":

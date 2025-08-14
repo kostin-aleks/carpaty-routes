@@ -3,6 +3,7 @@ black
 isort
 fastapi[standard]
 passlib[bcrypt]
+pwinput
 pymysql
 python-slugify
 sqladmin[full]
