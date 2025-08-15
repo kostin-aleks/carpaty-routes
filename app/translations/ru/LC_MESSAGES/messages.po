@@ -1,0 +1,144 @@
+# Russian translations for PROJECT.
+# Copyright (C) 2025 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2025-08-15 21:00+0300\n"
+"PO-Revision-Date: 2025-08-15 21:12+0300\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: ru\n"
+"Language-Team: ru <LL@li.org>\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
+"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.8.0\n"
+
+#: main.py:37
+msgid "Carpathians winter routes"
+msgstr ""
+
+#: manage.py:56
+msgid "Created admin user {}"
+msgstr ""
+
+#: manage.py:69
+msgid "Username not found"
+msgstr ""
+
+#: manage.py:71
+msgid "Password: "
+msgstr ""
+
+#: manage.py:78
+msgid "Changed user's password"
+msgstr ""
+
+#: manage.py:105
+msgid "Test user {} is ready to test"
+msgstr ""
+
+#: routers/mountains.py:42 routers/users.py:41
+msgid "Not found"
+msgstr ""
+
+#: routers/mountains.py:79 routers/mountains.py:114 routers/mountains.py:161
+#: routers/mountains.py:193 routers/mountains.py:219 routers/mountains.py:289
+#: routers/mountains.py:339 routers/mountains.py:382 routers/mountains.py:430
+#: routers/mountains.py:470 routers/mountains.py:496 routers/mountains.py:575
+#: routers/mountains.py:622 routers/mountains.py:660 routers/mountains.py:706
+#: routers/mountains.py:749 routers/mountains.py:792 routers/mountains.py:835
+#: routers/mountains.py:869 routers/mountains.py:900 routers/mountains.py:928
+#: routers/mountains.py:957 routers/users.py:219
+msgid "No permission for this action"
+msgstr ""
+
+#: routers/mountains.py:106 routers/mountains.py:134 routers/mountains.py:152
+#: routers/mountains.py:186 routers/mountains.py:238
+msgid "Ridge not found"
+msgstr ""
+
+#: routers/mountains.py:199
+msgid "Ridge {} deleted succesfully"
+msgstr ""
+
+#: routers/mountains.py:212
+msgid "Ridge info link not found"
+msgstr ""
+
+#: routers/mountains.py:226
+msgid "Ridge link with id={} deleted succesfully"
+msgstr ""
+
+#: routers/mountains.py:274 routers/mountains.py:331 routers/mountains.py:374
+#: routers/mountains.py:422 routers/mountains.py:463 routers/mountains.py:515
+msgid "Peak not found"
+msgstr ""
+
+#: routers/mountains.py:476
+msgid "Peak {} deleted succesfully"
+msgstr ""
+
+#: routers/mountains.py:489
+msgid "Peak photo not found"
+msgstr ""
+
+#: routers/mountains.py:503
+msgid "Peak photo with id={} deleted succesfully"
+msgstr ""
+
+#: routers/mountains.py:559
+msgid "Route '{}' not found"
+msgstr ""
+
+#: routers/mountains.py:614 routers/mountains.py:652
+msgid "Route id='{}' not found"
+msgstr ""
+
+#: routers/mountains.py:698 routers/mountains.py:741 routers/mountains.py:784
+#: routers/mountains.py:827 routers/mountains.py:893
+msgid "Route not found"
+msgstr ""
+
+#: routers/mountains.py:861 routers/mountains.py:950
+msgid "Route section not found"
+msgstr ""
+
+#: routers/mountains.py:908
+msgid "Route {} deleted succesfully"
+msgstr ""
+
+#: routers/mountains.py:921
+msgid "Route point not found"
+msgstr ""
+
+#: routers/mountains.py:936
+msgid "Route point with id={} deleted succesfully"
+msgstr ""
+
+#: routers/mountains.py:964
+msgid "Route section with id={} deleted succesfully"
+msgstr ""
+
+#: routers/users.py:104
+msgid "Inactive user"
+msgstr ""
+
+#: routers/users.py:146
+msgid "Username already registered"
+msgstr ""
+
+#: routers/users.py:154
+msgid "Email already registered"
+msgstr ""
+
+#: routers/users.py:186 routers/users.py:213 routers/users.py:245
+#: routers/users.py:268
+msgid "User not found"
+msgstr ""
+

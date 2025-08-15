@@ -7,10 +7,14 @@ from fastapi.staticfiles import StaticFiles
 from sqladmin import Admin
 
 from .dependencies import db
+from .i18n import _
+from .middleware import LanguageMiddleware
 from .models.admin import APIUserAdmin, PeakAdmin, RidgeAdmin, RouteAdmin
 from .routers import mountains, users
 
 app = FastAPI()
+
+app.add_middleware(LanguageMiddleware)
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 app.mount("/media", StaticFiles(directory="data"), name="media")
@@ -30,4 +34,4 @@ async def root():
     """
     fake end-point
     """
-    return {"application": "Carpathians winter routes"}
+    return {"application": _("Carpathians winter routes")}

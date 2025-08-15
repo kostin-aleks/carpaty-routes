@@ -1,4 +1,5 @@
 alembic
+Babel
 black
 isort
 fastapi[standard]

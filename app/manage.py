@@ -8,6 +8,7 @@ import sys
 import pwinput
 import typer
 from fastapi import HTTPException, status
+from i18n import _
 from sqlalchemy.orm import Session
 from sqlmodel import select
 
@@ -52,7 +53,7 @@ def create_admin(name: str, password: str, email: str):
     db.commit()
     db.refresh(user)
 
-    print(f"Created admin user {name}")
+    print(_("Created admin user {}").format(name))
 
 
 @app.command()
@@ -65,16 +66,16 @@ def change_password(username: str):
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Username not found",
+            detail=_("Username not found"),
         )
-    password = pwinput.pwinput(prompt="Password: ", mask="*")
+    password = pwinput.pwinput(prompt=_("Password: "), mask="*")
     user.password = get_password_hash(password)
 
     db.add(user)
     db.commit()
     db.refresh(user)
 
-    print("Changed user's password")
+    print(_("Changed user's password"))
 
 
 @app.command()
@@ -101,7 +102,7 @@ def add_test_user():
         db.commit()
         db.refresh(user)
 
-    print(f"Test user {user.username} is ready to test")
+    print(_("Test user {} is ready to test").format(user.username))
 
 
 if __name__ == "__main__":

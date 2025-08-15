@@ -12,6 +12,7 @@ from jwt.exceptions import InvalidTokenError
 from sqlmodel import Session, select
 from starlette.config import Config
 
+from app.i18n import _
 from app.dependencies import db, get_password_hash, get_session, verify_password
 from app.models.users import (
     APIUser,
@@ -37,7 +38,7 @@ router = APIRouter(
     prefix="/users",
     tags=["users"],
     # dependencies=[Depends(get_token_header)],
-    responses={404: {"description": "Not found"}},
+    responses={404: {"description": _("Not found")}},
 )
 
 
@@ -100,7 +101,7 @@ async def get_current_active_user(
 ):
     """get current active user"""
     if not current_user.is_active:
-        raise HTTPException(status_code=400, detail="Inactive user")
+        raise HTTPException(status_code=400, detail=_("Inactive user"))
     return current_user
 
 
@@ -142,14 +143,15 @@ async def register_user(
     if db_user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Username already registered",
+            detail=_("Username already registered"),
         )
 
     statement = select(APIUser).where(APIUser.email == user.email)
     db_user = session.exec(statement).first()
     if db_user:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered"
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=_("Email already registered")
         )
 
     hashed_password = get_password_hash(user.password)
@@ -181,7 +183,7 @@ async def update_user(
     db_user = session.exec(statement).first()
     if not db_user or db_user.username != user.username:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail=_("User not found")
         )
 
     user_dict = user.model_dump(exclude_unset=True)
@@ -208,13 +210,13 @@ async def set_user_permissions(
     db_user = session.exec(statement).first()
     if not db_user:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail=_("User not found")
         )
     # check permission
     if not current_user.is_admin:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="No permission for this action",
+            detail=_("No permission for this action"),
         )
 
     data_dict = data.model_dump(exclude_unset=True)
@@ -240,7 +242,7 @@ async def update_user_email(
     db_user = session.exec(statement).first()
     if not db_user or db_user.username != user.username:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="User not found"
+            status_code=status.HTTP_403_FORBIDDEN, detail=_("User not found")
         )
 
     db_user.email = user.new_email
@@ -263,7 +265,7 @@ async def update_user_password(
     db_user = session.exec(statement).first()
     if not (db_user and verify_password(user.password, db_user.password)):
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="User not found"
+            status_code=status.HTTP_403_FORBIDDEN, detail=_("User not found")
         )
 
     db_user.password = get_password_hash(user.new_password)
