@@ -1,6 +1,7 @@
 """
 Mountain Models
 """
+
 import os
 from datetime import datetime
 from typing import List, Optional
@@ -11,6 +12,7 @@ from sqlalchemy.types import String, TypeDecorator
 from sqlmodel import Field, Relationship, SQLModel
 
 import app.settings as app_settings
+from app.dependencies import config
 from app.models.users import APIUser
 
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -20,6 +22,7 @@ class MediaRoot:
     """
     Класс со статическими методами для организации загрузки файла
     """
+
     @staticmethod
     def root():
         """
@@ -60,11 +63,19 @@ class MediaRoot:
         _directory = f"{app_settings.PHOTOS_ROOT}/{klas.__name__.lower()}/{_now}"
         return _directory
 
+    @staticmethod
+    def image_root_url():
+        """
+        get prefix to photo url
+        """
+        return config("MEDIA_URL", cast=str)
+
 
 class HttpUrlType(TypeDecorator):
     """
     Type for http link
     """
+
     impl = String(2083)
     cache_ok = True
     python_type = HttpUrl
@@ -83,6 +94,7 @@ class GeoPoint(SQLModel, table=True):
     """
     Model for Geo Point
     """
+
     __tablename__ = "geopoint"
     id: int | None = Field(default=None, primary_key=True)
     latitude: float = 0
@@ -96,6 +108,7 @@ class ResponceStatus(BaseModel):
     """
     Data Model for Status
     """
+
     message: str = ""
     status: bool = True
 
@@ -104,6 +117,7 @@ class GeoPointCreate(BaseModel):
     """
     Data Model for new Point
     """
+
     latitude: float = 0
     longitude: float = 0
 
@@ -213,6 +227,7 @@ class RidgeCreate(BaseModel):
     """
     Data Model for new Ridge
     """
+
     name: str = Field(max_length=128)
     description: Optional[str] = None
 
@@ -221,6 +236,7 @@ class RidgeInfoLinkCreate(BaseModel):
     """
     Data Model for new Link
     """
+
     ridge_id: Optional[int] = Field(default=None, foreign_key="ridge.id")
     link: HttpUrl = Field(max_length=128)
     description: Optional[str] = None
@@ -282,6 +298,13 @@ class Peak(SQLModel, table=True):
             return False
         return True
 
+    @computed_field
+    @property
+    def photo_url(self) -> str:
+        """url to photo"""
+
+        return f"{MediaRoot.image_root_url()}{self.photo}"
+
 
 class PeakOut(BaseModel):
     """
@@ -298,7 +321,7 @@ class PeakOut(BaseModel):
     height: int | None
     # point_id: Optional[int]
     point: Optional[GeoPoint]
-    photo: str | None
+    photo_url: str | None
     editor_id: int | None
     active: bool
     changed: datetime
@@ -326,6 +349,7 @@ class PeakCreate(BaseModel):
     """
     Data Model for new Peak
     """
+
     name: str = Field(max_length=128)
     description: Optional[str] = None
     ridge_id: int
@@ -344,6 +368,13 @@ class PeakPhoto(SQLModel, table=True):
     peak: Optional[Peak] = Relationship(back_populates="photos")
     photo: str | None = Field(default=None, unique=True, max_length=128)
     description: str | None = Field(default=None, max_length=128)
+
+    @computed_field
+    @property
+    def photo_url(self) -> str:
+        """url to photo"""
+
+        return f"{MediaRoot.image_root_url()}{self.photo}"
 
 
 class Route(SQLModel, table=True):
@@ -419,6 +450,20 @@ class Route(SQLModel, table=True):
             return False
         return True
 
+    @computed_field
+    @property
+    def photo_url(self) -> str:
+        """url to photo"""
+
+        return f"{MediaRoot.image_root_url()}{self.photo}"
+
+    @computed_field
+    @property
+    def map_image_url(self) -> str:
+        """url to map"""
+
+        return f"{MediaRoot.image_root_url()}{self.map_image}"
+
 
 class RouteOut(BaseModel):
     """
@@ -434,8 +479,8 @@ class RouteOut(BaseModel):
     description: str | None
     short_description: str | None
     recommended_equipment: str | None
-    photo: str | None
-    map_image: str | None
+    photo_url: str | None
+    map_image_url: str | None
     difficulty: str | None
     max_difficulty: str | None
     author: str | None
@@ -458,6 +503,7 @@ class RouteCreate(BaseModel):
     """
     Data Model for new Route
     """
+
     peak_id: int
     name: str = Field(max_length=64)
     description: Optional[str] = None
@@ -508,6 +554,7 @@ class RouteSectionCreate(BaseModel):
     """
     Data Model for new Route Section
     """
+
     route_id: int
     num: Optional[int] = None
     description: Optional[str] = None
@@ -527,6 +574,13 @@ class RoutePhoto(SQLModel, table=True):
     route: Optional[Route] = Relationship(back_populates="photos")
     photo: str | None = Field(default=None, unique=True, max_length=128)
     description: str | None = Field(default=None, max_length=128)
+
+    @computed_field
+    @property
+    def photo_url(self) -> str:
+        """url to photo"""
+
+        return f"{MediaRoot.image_root_url()}{self.photo}"
 
 
 class RoutePoint(SQLModel, table=True):
@@ -559,6 +613,7 @@ class RoutePointCreate(BaseModel):
     """
     Data Model for new Route Point
     """
+
     route_id: int
     description: Optional[str] = None
     point: GeoPointCreate

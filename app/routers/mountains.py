@@ -38,7 +38,6 @@ from app.routers.users import get_current_active_user
 router = APIRouter(
     prefix="/mountains",
     tags=["mountains"],
-    # dependencies=[Depends(get_token_header)],
     responses={404: {"description": "Not found"}},
 )
 
