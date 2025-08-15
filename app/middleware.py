@@ -4,7 +4,7 @@ Language Middleware
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from i18n import set_locale
+from app.i18n import set_locale
 
 
 class LanguageMiddleware(BaseHTTPMiddleware):

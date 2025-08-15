@@ -25,6 +25,8 @@ from app.models.users import (
     UserUpdate,
 )
 
+USER_NOT_FOUND = _("User not found")
+
 config = Config(".env")
 
 _SECRET_KEY = config("SECRET_KEY", cast=str)
@@ -183,7 +185,7 @@ async def update_user(
     db_user = session.exec(statement).first()
     if not db_user or db_user.username != user.username:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=_("User not found")
+            status_code=status.HTTP_404_NOT_FOUND, detail=USER_NOT_FOUND
         )
 
     user_dict = user.model_dump(exclude_unset=True)
@@ -210,7 +212,7 @@ async def set_user_permissions(
     db_user = session.exec(statement).first()
     if not db_user:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=_("User not found")
+            status_code=status.HTTP_404_NOT_FOUND, detail=USER_NOT_FOUND
         )
     # check permission
     if not current_user.is_admin:
@@ -242,7 +244,7 @@ async def update_user_email(
     db_user = session.exec(statement).first()
     if not db_user or db_user.username != user.username:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail=_("User not found")
+            status_code=status.HTTP_403_FORBIDDEN, detail=USER_NOT_FOUND
         )
 
     db_user.email = user.new_email
@@ -265,7 +267,7 @@ async def update_user_password(
     db_user = session.exec(statement).first()
     if not (db_user and verify_password(user.password, db_user.password)):
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail=_("User not found")
+            status_code=status.HTTP_403_FORBIDDEN, detail=USER_NOT_FOUND
         )
 
     db_user.password = get_password_hash(user.new_password)
