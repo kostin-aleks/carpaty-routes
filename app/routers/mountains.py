@@ -1,13 +1,14 @@
 """
 Router Mountains
 """
+
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, status
 from slugify import slugify
 from sqlmodel import Session, select
 
-from app.database import db, get_session
+from app.dependencies import db, get_session
 from app.models.mountains import (
     GeoPoint,
     Peak,
@@ -531,7 +532,9 @@ async def search_route(
     """search routes by slug or name"""
     statement = select(Route)
     if query:
-        statement = statement.where(Route.slug.contains(query) | Route.name.contains(query))
+        statement = statement.where(
+            Route.slug.contains(query) | Route.name.contains(query)
+        )
     if author:
         statement = statement.where(Route.author.contains(author))
     if category:

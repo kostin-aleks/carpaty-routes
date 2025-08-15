@@ -1,10 +1,11 @@
 """
 MAIN
 """
+
 from fastapi import FastAPI
 from sqladmin import Admin
 
-from .database import db
+from .dependencies import db
 from .models.admin import APIUserAdmin, PeakAdmin, RidgeAdmin, RouteAdmin
 from .routers import mountains, users
 

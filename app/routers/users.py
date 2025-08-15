@@ -3,7 +3,6 @@ Router Mountains
 """
 
 from datetime import datetime, timedelta, timezone
-from app.dependencies import verify_password, get_password_hash
 from typing import Annotated
 
 import jwt
@@ -13,7 +12,7 @@ from jwt.exceptions import InvalidTokenError
 from sqlmodel import Session, select
 from starlette.config import Config
 
-from app.database import db, get_session
+from app.dependencies import db, get_password_hash, get_session, verify_password
 from app.models.users import (
     APIUser,
     Token,

@@ -8,8 +8,7 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlmodel import Session, select
 
-from app.database import db
-from app.dependencies import config
+from app.dependencies import config, db
 from app.main import app
 from app.models.users import APIUser
 from app.routers.users import verify_password

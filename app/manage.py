@@ -4,7 +4,6 @@ Manage commands
 
 import inspect
 import sys
-from pathlib import Path
 
 import pwinput
 import typer
@@ -75,7 +74,7 @@ def change_password(username: str):
     db.commit()
     db.refresh(user)
 
-    print(f"Changed user's password")
+    print("Changed user's password")
 
 
 @app.command()
