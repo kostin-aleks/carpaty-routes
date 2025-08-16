@@ -276,7 +276,7 @@ async def get_peak(slug: str, session: Session = Depends(get_session)) -> PeakOu
     statement = select(Peak).where(Peak.slug == slug)
     peak = session.exec(statement).first()
     if peak is None:
-        raise HTTPException(status_code=404, detail=PEAK_NOT_FOUND)
+        raise HTTPException(status_code=404, detail= _("Peak not found"))
 
     return peak
 

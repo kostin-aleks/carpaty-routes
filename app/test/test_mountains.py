@@ -85,7 +85,8 @@ def test_read_peak_routes():
 
 def test_read_peak():
     """test read peak"""
-    response = client.get(f"/mountains/peak/{PEAK_SLUG}")
+    response = client.get(
+        f"/mountains/peak/{PEAK_SLUG}", headers={'Accept-Language': 'ru'})
     assert response.status_code == 200
     data = response.json()
 
