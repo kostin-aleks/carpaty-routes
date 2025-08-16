@@ -21,47 +21,47 @@ msgstr ""
 
 #: main.py:37
 msgid "Carpathians winter routes"
-msgstr ""
+msgstr "Зимние маршруты в Карпатах"
 
 #: manage.py:56
 msgid "Created admin user {}"
-msgstr ""
+msgstr "Создан новый администратор {}"
 
 #: manage.py:69
 msgid "Username not found"
-msgstr ""
+msgstr "Не найдено имя пользователя"
 
 #: manage.py:71
 msgid "Password: "
-msgstr ""
+msgstr "Пароль: "
 
 #: manage.py:78
 msgid "Changed user's password"
-msgstr ""
+msgstr "Изменён пароль пользователя"
 
 #: manage.py:105
 msgid "Test user {} is ready to test"
-msgstr ""
+msgstr "Тестовый пользователь {} готов для тестирования"
 
 #: routers/mountains.py:39
 msgid "Ridge not found"
-msgstr ""
+msgstr "Не найден хребет"
 
 #: routers/mountains.py:40
 msgid "Peak not found"
-msgstr ""
+msgstr "Не найдена вершина"
 
 #: routers/mountains.py:41
 msgid "Route not found"
-msgstr ""
+msgstr "Не найден маршрут"
 
 #: routers/mountains.py:42 routers/users.py:221
 msgid "No permission for this action"
-msgstr ""
+msgstr "Нет разрешения на это действие"
 
 #: routers/mountains.py:47 routers/users.py:43
 msgid "Not found"
-msgstr ""
+msgstr "Не найдено"
 
 #: routers/mountains.py:204
 msgid "Ridge {} deleted succesfully"
@@ -69,63 +69,63 @@ msgstr ""
 
 #: routers/mountains.py:217
 msgid "Ridge info link not found"
-msgstr ""
+msgstr "Ссылка не найдена"
 
 #: routers/mountains.py:231
 msgid "Ridge link with id={} deleted succesfully"
-msgstr ""
+msgstr "Ссылка с id={} успешно удалена"
 
 #: routers/mountains.py:481
 msgid "Peak {} deleted succesfully"
-msgstr ""
+msgstr "Вершина {} успешно удалена"
 
 #: routers/mountains.py:508
 msgid "Peak photo with id={} deleted succesfully"
-msgstr ""
+msgstr "Фотография вершины с id={} успешно удалена"
 
 #: routers/mountains.py:564
 msgid "Route '{}' not found"
-msgstr ""
+msgstr "Маршрут '{}' не найден"
 
 #: routers/mountains.py:619 routers/mountains.py:657
 msgid "Route id='{}' not found"
-msgstr ""
+msgstr "Маршрут id='{}' не найден"
 
 #: routers/mountains.py:866 routers/mountains.py:955
 msgid "Route section not found"
-msgstr ""
+msgstr "Участок маршрута не найден"
 
 #: routers/mountains.py:913
 msgid "Route {} deleted succesfully"
-msgstr ""
+msgstr "Маршрут {} успешно удалён"
 
 #: routers/mountains.py:926
 msgid "Route point not found"
-msgstr ""
+msgstr "Точка маршрута не найдена"
 
 #: routers/mountains.py:941
 msgid "Route point with id={} deleted succesfully"
-msgstr ""
+msgstr "Точка маршрута с id={} успешно удалена"
 
 #: routers/mountains.py:969
 msgid "Route section with id={} deleted succesfully"
-msgstr ""
+msgstr "Участок маршрута с id={} успешно удалён"
 
 #: routers/users.py:28
 msgid "User not found"
-msgstr ""
+msgstr "Пользователь не найден"
 
 #: routers/users.py:106
 msgid "Inactive user"
-msgstr ""
+msgstr "Неактивный пользователь"
 
 #: routers/users.py:148
 msgid "Username already registered"
-msgstr ""
+msgstr "Имя пользователя уже используется"
 
 #: routers/users.py:156
 msgid "Email already registered"
-msgstr ""
+msgstr "Email уже используется другим пользователем"
 
 #~ msgid "Peak photo not found"
 #~ msgstr ""
