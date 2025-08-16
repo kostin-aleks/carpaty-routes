@@ -12,8 +12,8 @@ from jwt.exceptions import InvalidTokenError
 from sqlmodel import Session, select
 from starlette.config import Config
 
-from app.i18n import _
 from app.dependencies import db, get_password_hash, get_session, verify_password
+from app.i18n import _
 from app.models.users import (
     APIUser,
     Token,
@@ -24,8 +24,6 @@ from app.models.users import (
     UserPermission,
     UserUpdate,
 )
-
-USER_NOT_FOUND = _("User not found")
 
 config = Config(".env")
 
@@ -42,6 +40,17 @@ router = APIRouter(
     # dependencies=[Depends(get_token_header)],
     responses={404: {"description": _("Not found")}},
 )
+
+
+def checked_user(user_id, session):
+    """Check for existing user"""
+    statement = select(APIUser).where(APIUser.id == user_id)
+    db_user = session.exec(statement).first()
+    if not db_user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=_("User not found")
+        )
+    return db_user
 
 
 def get_user(username: str):
@@ -153,7 +162,7 @@ async def register_user(
     if db_user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=_("Email already registered")
+            detail=_("Email already registered"),
         )
 
     hashed_password = get_password_hash(user.password)
@@ -180,13 +189,7 @@ async def update_user(
     session: Session = Depends(get_session),
 ) -> APIUser:
     """update user"""
-    # Check for existing user
-    statement = select(APIUser).where(APIUser.id == user_id)
-    db_user = session.exec(statement).first()
-    if not db_user or db_user.username != user.username:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=USER_NOT_FOUND
-        )
+    db_user = checked_user(user_id, session)
 
     user_dict = user.model_dump(exclude_unset=True)
     for key, value in user_dict.items():
@@ -207,13 +210,8 @@ async def set_user_permissions(
     session: Session = Depends(get_session),
 ) -> APIUser:
     """update user permissions"""
-    # Check for existing user
-    statement = select(APIUser).where(APIUser.id == user_id)
-    db_user = session.exec(statement).first()
-    if not db_user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=USER_NOT_FOUND
-        )
+    db_user = checked_user(user_id, session)
+
     # check permission
     if not current_user.is_admin:
         raise HTTPException(
@@ -244,7 +242,7 @@ async def update_user_email(
     db_user = session.exec(statement).first()
     if not db_user or db_user.username != user.username:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail=USER_NOT_FOUND
+            status_code=status.HTTP_403_FORBIDDEN, detail=_("User not found")
         )
 
     db_user.email = user.new_email
@@ -267,7 +265,7 @@ async def update_user_password(
     db_user = session.exec(statement).first()
     if not (db_user and verify_password(user.password, db_user.password)):
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail=USER_NOT_FOUND
+            status_code=status.HTTP_403_FORBIDDEN, detail=_("User not found")
         )
 
     db_user.password = get_password_hash(user.new_password)
