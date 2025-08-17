@@ -5,6 +5,8 @@ import gettext
 from pathlib import Path
 from fastapi import Request
 
+LANGUAGES = ('en', 'ru', 'ua')
+
 
 class TranslationWrapper:
     """
@@ -43,7 +45,7 @@ class TranslationWrapper:
         using the default language and the specified
         translation directory.
         """
-        lang = "en"  # Default language
+        lang = "ru"  # Default language
         # src/translation
         locales_dir = Path(__file__).parent / "translations"
         self.translations = gettext.translation(
@@ -79,7 +81,9 @@ async def set_locale(request: Request):
     """
     translation_wrapper = TranslationWrapper()
 
-    lang = request.headers.get("Accept-Language", "en")
+    lang = request.headers.get("Accept-Language", "ru")
+    if lang not in LANGUAGES:
+        lang = "ru"
     locales_dir = Path(__file__).parent / "translations"
 
     translation_wrapper.translations = gettext.translation(
