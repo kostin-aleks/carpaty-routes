@@ -15,4 +15,4 @@ def test_read_main():
     response = client.get("/")
     assert response.status_code == 200
     data = response.json()
-    assert data["application"] == "Carpathians winter routes"
+    assert data["application"] == "Зимние маршруты в Карпатах"

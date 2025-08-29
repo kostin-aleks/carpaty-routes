@@ -12,7 +12,7 @@ from sqlmodel import Field
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
 
-class ResponceStatus(BaseModel):
+class ResponseStatus(BaseModel):
     """
     Data Model for Status
     """
@@ -124,7 +124,19 @@ class PeakOut(BaseModel):
     photos_list: list | None = []
     routes_list: list | None = []
 
+class PeakListItem(BaseModel):
+    """
+    Peak model for list of peaks
+    short information
+    """
 
+    model_config = ConfigDict(from_attributes=True)
+    id: int | None
+    slug: str | None
+    name: str
+    height: int | None
+    ridge_id: int
+    
 class PeakShortOut(BaseModel):
     """
     Peak model for single Peak
@@ -232,7 +244,18 @@ class RouteSectionCreate(BaseModel):
     difficulty: Optional[str] = None
     angle: Optional[str] = None
 
+class RouteSectionOut(BaseModel):
+    """
+    Data Model for Route Section
+    """
 
+    route_id: int
+    num: Optional[int]
+    description: Optional[str]
+    length: Optional[int]
+    difficulty: Optional[str]
+    angle: Optional[str]
+    
 class RoutePointCreate(BaseModel):
     """
     Data Model for new Route Point

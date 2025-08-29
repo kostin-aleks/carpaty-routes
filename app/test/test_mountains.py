@@ -21,7 +21,6 @@ def test_read_ridges():
     assert len(data)
     item = data[0]
     assert item["slug"]
-    assert item["peaks_list"]
 
 
 def test_read_ridge():

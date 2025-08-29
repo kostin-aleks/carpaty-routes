@@ -14,6 +14,7 @@ from sqlmodel import Field, Relationship, SQLModel
 import app.settings as app_settings
 from app.dependencies import config
 from app.models.users import APIUser
+from app.schema.mountains import PeakListItem
 
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
@@ -144,7 +145,7 @@ class Ridge(SQLModel, table=True):
     @property
     def peaks_list(self) -> list:
         """peaks list"""
-        return self.peaks
+        return [PeakListItem.model_validate(peak) for peak in self.peaks]
 
     @computed_field
     @property

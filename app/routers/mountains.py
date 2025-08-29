@@ -26,8 +26,8 @@ from app.routers.users import get_current_active_user
 from app.schema.mountains import (
     PeakCreate,
     PeakOut,
-    PeakShortOut,
-    ResponceStatus,
+    PeakListItem,
+    ResponseStatus,
     RidgeCreate,
     RidgeInfoLinkCreate,
     RidgeListItem,
@@ -37,6 +37,7 @@ from app.schema.mountains import (
     RouteOut,
     RoutePointCreate,
     RouteSectionCreate,
+    RouteSectionOut,
 )
 
 router = APIRouter(
@@ -133,12 +134,12 @@ async def get_ridges(session: Session = Depends(get_session)) -> list[RidgeListI
     return ridges
 
 
-@router.post("/ridges/add", response_model=Ridge)
+@router.post("/ridges/add", response_model=RidgeOut)
 async def add_ridge(
     ridge: RidgeCreate,
     current_user: Annotated[APIUser, Depends(get_current_active_user)],
     session: Session = Depends(get_session),
-) -> Ridge:
+) -> RidgeOut:
     """add new ridge"""
     can_add(current_user)
 
@@ -155,13 +156,13 @@ async def add_ridge(
     return db_ridge
 
 
-@router.put("/ridge/{slug}", response_model=Ridge)
+@router.put("/ridge/{slug}", response_model=RidgeOut)
 async def update_ridge(
     slug: str,
     ridge: RidgeCreate,
     current_user: Annotated[APIUser, Depends(get_current_active_user)],
     session: Session = Depends(get_session),
-) -> Ridge:
+) -> RidgeOut:
     """update the ridge fields"""
     db_ridge = checked_ridge(session, slug=slug)
 
@@ -214,12 +215,12 @@ async def add_ridge_infolink(
     return db_link
 
 
-@router.delete("/ridge/{slug}")
+@router.delete("/ridge/{slug}", response_model=ResponseStatus)
 async def delete_ridge(
     slug: str,
     current_user: Annotated[APIUser, Depends(get_current_active_user)],
     session: Session = Depends(get_session),
-) -> ResponceStatus:
+) -> ResponseStatus:
     """delete the ridge"""
     ridge = checked_ridge(session, slug=slug)
 
@@ -228,17 +229,17 @@ async def delete_ridge(
     session.delete(ridge)
     session.commit()
 
-    return ResponceStatus(
+    return ResponseStatus(
         status=True, message=_("Ridge {} deleted succesfully").format(slug)
     )
 
 
-@router.delete("/ridge/link/{link_id}")
+@router.delete("/ridge/link/{link_id}", response_model=ResponseStatus)
 async def delete_ridge_link(
     link_id: int,
     current_user: Annotated[APIUser, Depends(get_current_active_user)],
     session: Session = Depends(get_session),
-) -> ResponceStatus:
+) -> ResponseStatus:
     """delete the ridge link"""
     statement = select(RidgeInfoLink).where(RidgeInfoLink.id == link_id)
     link = session.exec(statement).first()
@@ -249,22 +250,22 @@ async def delete_ridge_link(
     session.delete(link)
     session.commit()
 
-    return ResponceStatus(
+    return ResponseStatus(
         status=True,
         message=_("Ridge link with id={} deleted succesfully").format(link_id),
     )
 
 
-@router.get("/ridge/peaks/{slug}", response_model=list[PeakShortOut])
+@router.get("/ridge/peaks/{slug}", response_model=List[PeakListItem])
 async def get_ridge_peaks(
     slug: str, session: Session = Depends(get_session)
-) -> list[PeakShortOut]:
+) -> List[PeakListItem]:
     """get list of ridge peaks"""
     ridge = checked_ridge(session, slug=slug)
 
     statement = select(Peak).where(Peak.ridge == ridge)
     peaks = session.exec(statement).all()
-    peaks = [PeakShortOut.model_validate(peak) for peak in peaks]
+    # peaks = [PeakShortOut.model_validate(peak) for peak in peaks]
 
     return peaks
 
@@ -276,11 +277,11 @@ async def get_peaks(session: Session = Depends(get_session)) -> list[Peak]:
     return peaks
 
 
-@router.get("/peaks/search", response_model=list[PeakOut])
+@router.get("/peaks/search", response_model=list[PeakListItem])
 async def search_peak(
     key: Annotated[str | None, Query(max_length=50)] = None,
     session: Session = Depends(get_session),
-) -> list[PeakOut]:
+) -> list[PeakListItem]:
     """search peaks by slug or name"""
     statement = select(Peak)
     if key:
@@ -301,12 +302,12 @@ async def get_peak(slug: str, session: Session = Depends(get_session)) -> PeakOu
     return peak
 
 
-@router.post("/peaks/add", response_model=Peak)
+@router.post("/peaks/add", response_model=PeakOut)
 async def add_peak(
     peak: PeakCreate,
     current_user: Annotated[APIUser, Depends(get_current_active_user)],
     session: Session = Depends(get_session),
-) -> Peak:
+) -> PeakOut:
     """add new peak"""
     can_add(current_user)
 
@@ -370,13 +371,13 @@ async def add_peak_photo(
         return {"message": error.args, "success": False}
 
 
-@router.put("/peak/{slug}", response_model=Peak)
+@router.put("/peak/{slug}", response_model=PeakOut)
 async def update_peak(
     slug: str,
     peak: PeakCreate,
     current_user: Annotated[APIUser, Depends(get_current_active_user)],
     session: Session = Depends(get_session),
-) -> Peak:
+) -> PeakOut:
     """update the peak fields"""
     db_peak = checked_peak(session, slug=slug)
 
@@ -407,13 +408,13 @@ async def update_peak(
     return db_peak
 
 
-@router.put("/peak/{peak_id}/photo", response_model=Peak)
+@router.put("/peak/{peak_id}/photo", response_model=PeakOut)
 async def update_peak_photo(
     peak_id: int,
     file: UploadFile,
     current_user: Annotated[APIUser, Depends(get_current_active_user)],
     session: Session = Depends(get_session),
-) -> Peak:
+) -> PeakOut:
     """update the peak photo"""
     peak = checked_peak(session, peak_id=peak_id)
 
@@ -439,12 +440,12 @@ async def update_peak_photo(
         return {"message": error.args, "success": False}
 
 
-@router.delete("/peak/{slug}")
+@router.delete("/peak/{slug}", response_model=ResponseStatus)
 async def delete_peak(
     slug: str,
     current_user: Annotated[APIUser, Depends(get_current_active_user)],
     session: Session = Depends(get_session),
-) -> ResponceStatus:
+) -> ResponseStatus:
     """delete the peak"""
     peak = checked_peak(session, slug=slug)
 
@@ -453,17 +454,17 @@ async def delete_peak(
     session.delete(peak)
     session.commit()
 
-    return ResponceStatus(
+    return ResponseStatus(
         status=True, message=_("Peak {} deleted succesfully").format(slug)
     )
 
 
-@router.delete("/peak/photo/{photo_id}")
+@router.delete("/peak/photo/{photo_id}", response_model=ResponseStatus)
 async def delete_peak_photo(
     photo_id: int,
     current_user: Annotated[APIUser, Depends(get_current_active_user)],
     session: Session = Depends(get_session),
-) -> ResponceStatus:
+) -> ResponseStatus:
     """delete the peak photo"""
     statement = select(PeakPhoto).where(PeakPhoto.id == photo_id)
     photo = session.exec(statement).first()
@@ -474,16 +475,16 @@ async def delete_peak_photo(
     session.delete(photo)
     session.commit()
 
-    return ResponceStatus(
+    return ResponseStatus(
         status=True,
         message=_("Peak photo with id={} deleted succesfully").format(photo_id),
     )
 
 
-@router.get("/peak/routes/{slug}", response_model=list[RouteListItem])
+@router.get("/peak/routes/{slug}", response_model=List[RouteListItem])
 async def get_peak_routes(
     slug: str, session: Session = Depends(get_session)
-) -> list[RouteListItem]:
+) -> List[RouteListItem]:
     """get list of peak routes"""
     peak = checked_peak(session, slug=slug)
 
@@ -492,20 +493,20 @@ async def get_peak_routes(
     return routers
 
 
-@router.get("/routes")
-async def get_routes(session: Session = Depends(get_session)) -> list[Route]:
+@router.get("/routes", response_model=List[RouteListItem])
+async def get_routes(session: Session = Depends(get_session)) -> List[RouteListItem]:
     """get list of all routes"""
     routes = session.exec(select(Route)).all()
     return routes
 
 
-@router.get("/routes/search", response_model=list[RouteListItem])
+@router.get("/routes/search", response_model=List[RouteListItem])
 async def search_route(
     query: Annotated[str | None, Query(max_length=50)] = None,
     author: Annotated[str | None, Query(max_length=50)] = None,
     category: Annotated[str | None, Query(max_length=50)] = None,
     session: Session = Depends(get_session),
-) -> list[RouteListItem]:
+) -> List[RouteListItem]:
     """search routes by slug or name"""
     statement = select(Route)
     if query:
@@ -521,7 +522,7 @@ async def search_route(
     return routes
 
 
-@router.get("/route/{slug}")
+@router.get("/route/{slug}", response_model=RouteOut)
 async def get_route(slug: str, session: Session = Depends(get_session)) -> RouteOut:
     """get the route by slug"""
     route = checked_route(session, slug=slug)
@@ -531,12 +532,12 @@ async def get_route(slug: str, session: Session = Depends(get_session)) -> Route
     return route_out
 
 
-@router.post("/routes/add", response_model=Route)
+@router.post("/routes/add", response_model=RouteOut)
 async def add_route(
     route: RouteCreate,
     current_user: Annotated[APIUser, Depends(get_current_active_user)],
     session: Session = Depends(get_session),
-) -> Route:
+) -> RouteOut:
     """add new route"""
     can_add(current_user)
 
@@ -564,13 +565,13 @@ async def add_route(
     return db_route
 
 
-@router.post("/route/{route_id}/add/section", response_model=RouteSection)
+@router.post("/route/{route_id}/add/section", response_model=RouteSectionOut)
 async def add_route_section(
     route_id: int,
     section: RouteSectionCreate,
     current_user: Annotated[APIUser, Depends(get_current_active_user)],
     session: Session = Depends(get_session),
-) -> RouteSection:
+) -> RouteSectionOut:
     """add new route section"""
     route = checked_route(session, route_id=route_id)
 
@@ -659,13 +660,13 @@ async def add_route_photo(
         return {"message": error.args, "success": False}
 
 
-@router.put("/route/{route_id}/map", response_model=Route)
+@router.put("/route/{route_id}/map", response_model=RouteOut)
 async def update_route_map(
     route_id: int,
     file: UploadFile,
     current_user: Annotated[APIUser, Depends(get_current_active_user)],
     session: Session = Depends(get_session),
-) -> Route:
+) -> RouteOut:
     """update route map"""
     route = checked_route(session, route_id=route_id)
 
@@ -691,13 +692,13 @@ async def update_route_map(
         return {"message": error.args, "success": False}
 
 
-@router.put("/route/{route_id}/photo", response_model=Route)
+@router.put("/route/{route_id}/photo", response_model=RouteOut)
 async def update_route_photo(
     route_id: int,
     file: UploadFile,
     current_user: Annotated[APIUser, Depends(get_current_active_user)],
     session: Session = Depends(get_session),
-) -> Peak:
+) -> RouteOut:
     """update route photo"""
     route = checked_route(session, route_id=route_id)
 
@@ -723,13 +724,13 @@ async def update_route_photo(
         return {"message": error.args, "success": False}
 
 
-@router.put("/route/{route_id}", response_model=Route)
+@router.put("/route/{route_id}", response_model=RouteOut)
 async def update_route(
     route_id: int,
     route: RouteCreate,
     current_user: Annotated[APIUser, Depends(get_current_active_user)],
     session: Session = Depends(get_session),
-) -> Route:
+) -> RouteOut:
     """update route fields"""
     db_route = checked_route(session, route_id=route_id)
 
@@ -746,13 +747,13 @@ async def update_route(
     return db_route
 
 
-@router.put("/route/section/{section_id}", response_model=RouteSection)
+@router.put("/route/section/{section_id}", response_model=RouteSectionOut)
 async def update_route_section(
     section_id: int,
     section: RouteSectionCreate,
     current_user: Annotated[APIUser, Depends(get_current_active_user)],
     session: Session = Depends(get_session),
-) -> RouteSection:
+) -> RouteSectionOut:
     """update route section"""
     statement = select(RouteSection).where(RouteSection.id == section_id)
     db_section = session.exec(statement).first()
@@ -773,12 +774,12 @@ async def update_route_section(
     return db_section
 
 
-@router.delete("/route/{slug}")
+@router.delete("/route/{slug}", response_model=ResponseStatus)
 async def delete_route(
     slug: str,
     current_user: Annotated[APIUser, Depends(get_current_active_user)],
     session: Session = Depends(get_session),
-) -> ResponceStatus:
+) -> ResponseStatus:
     """delete the route"""
     route = checked_route(session, slug=slug)
 
@@ -787,17 +788,17 @@ async def delete_route(
     session.delete(route)
     session.commit()
 
-    return ResponceStatus(
+    return ResponseStatus(
         status=True, message=_("Route {} deleted succesfully").format(slug)
     )
 
 
-@router.delete("/route/point/{point_id}")
+@router.delete("/route/point/{point_id}", response_model=ResponseStatus)
 async def delete_route_point(
     point_id: int,
     current_user: Annotated[APIUser, Depends(get_current_active_user)],
     session: Session = Depends(get_session),
-) -> ResponceStatus:
+) -> ResponseStatus:
     """delete route point"""
     statement = select(RoutePoint).where(RoutePoint.id == point_id)
     point = session.exec(statement).first()
@@ -808,18 +809,18 @@ async def delete_route_point(
     session.delete(point)
     session.commit()
 
-    return ResponceStatus(
+    return ResponseStatus(
         status=True,
         message=_("Route point with id={} deleted succesfully").format(point_id),
     )
 
 
-@router.delete("/route/section/{section_id}")
+@router.delete("/route/section/{section_id}", response_model=ResponseStatus)
 async def delete_route_section(
     section_id: int,
     current_user: Annotated[APIUser, Depends(get_current_active_user)],
     session: Session = Depends(get_session),
-) -> ResponceStatus:
+) -> ResponseStatus:
     """delete route section"""
     statement = select(RouteSection).where(RouteSection.id == section_id)
     section = session.exec(statement).first()
@@ -830,7 +831,7 @@ async def delete_route_section(
     session.delete(section)
     session.commit()
 
-    return ResponceStatus(
+    return ResponseStatus(
         status=True,
         message=_("Route section with id={} deleted succesfully").format(section_id),
     )
