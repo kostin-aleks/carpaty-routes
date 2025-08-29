@@ -16,13 +16,16 @@ from app.dependencies import db, get_password_hash, get_session, verify_password
 from app.i18n import _
 from app.models.users import (
     APIUser,
+)
+from app.schema.users import (
     Token,
     TokenData,
-    UserCreate,
+    UserData,
     UserEmailUpdate,
     UserPasswordUpdate,
     UserPermission,
     UserUpdate,
+    UserOut,
 )
 
 config = Config(".env")
@@ -108,7 +111,7 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
 
 
 async def get_current_active_user(
-    current_user: Annotated[APIUser, Depends(get_current_user)]
+    current_user: Annotated[APIUser, Depends(get_current_user)],
 ):
     """get current active user"""
     if not current_user.is_active:
@@ -135,18 +138,18 @@ async def login_for_access_token(
     return Token(access_token=access_token, token_type="bearer")
 
 
-@router.get("/me/", response_model=APIUser)
+@router.get("/me/", response_model=UserOut)
 async def read_users_me(
-    current_user: Annotated[APIUser, Depends(get_current_active_user)]
-):
+    current_user: Annotated[APIUser, Depends(get_current_active_user)],
+) -> UserOut:
     """return data for current user"""
     return current_user
 
 
-@router.post("/register/", response_model=APIUser)
+@router.post("/register/", response_model=UserOut)
 async def register_user(
-    user: UserCreate, session: Session = Depends(get_session)
-) -> APIUser:
+    user: UserData, session: Session = Depends(get_session)
+) -> UserOut:
     """register new user"""
     # Check for existing user
     statement = select(APIUser).where(APIUser.username == user.username)
@@ -181,13 +184,13 @@ async def register_user(
     return db_user
 
 
-@router.put("/update/{user_id}", response_model=APIUser)
+@router.put("/update/{user_id}", response_model=UserOut)
 async def update_user(
     user_id: int,
     user: UserUpdate,
     current_user: Annotated[APIUser, Depends(get_current_active_user)],
     session: Session = Depends(get_session),
-) -> APIUser:
+) -> UserOut:
     """update user"""
     db_user = checked_user(user_id, session)
 
@@ -202,13 +205,13 @@ async def update_user(
     return db_user
 
 
-@router.put("/set/permissions/{user_id}", response_model=APIUser)
+@router.put("/set/permissions/{user_id}", response_model=UserOut)
 async def set_user_permissions(
     user_id: int,
     data: UserPermission,
     current_user: Annotated[APIUser, Depends(get_current_active_user)],
     session: Session = Depends(get_session),
-) -> APIUser:
+) -> UserOut:
     """update user permissions"""
     db_user = checked_user(user_id, session)
 
@@ -230,12 +233,12 @@ async def set_user_permissions(
     return db_user
 
 
-@router.put("/email/update", response_model=APIUser)
+@router.put("/email/update", response_model=UserOut)
 async def update_user_email(
     user: UserEmailUpdate,
     current_user: Annotated[APIUser, Depends(get_current_active_user)],
     session: Session = Depends(get_session),
-) -> APIUser:
+) -> UserOut:
     """update user email"""
     # Check for existing user
     statement = select(APIUser).where(APIUser.email == user.email)
@@ -253,12 +256,12 @@ async def update_user_email(
     return db_user
 
 
-@router.put("/password/update", response_model=APIUser)
+@router.put("/password/update", response_model=UserOut)
 async def update_user_password(
     user: UserPasswordUpdate,
     current_user: Annotated[APIUser, Depends(get_current_active_user)],
     session: Session = Depends(get_session),
-) -> APIUser:
+) -> UserOut:
     """update user password"""
     # Check for existing user
     statement = select(APIUser).where(APIUser.username == user.username)

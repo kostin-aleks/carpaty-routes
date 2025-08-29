@@ -2,7 +2,7 @@
 Router Mountains
 """
 
-from typing import Annotated
+from typing import Annotated, List
 
 from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, status
 from slugify import slugify
@@ -13,28 +13,31 @@ from app.i18n import _
 from app.models.mountains import (
     GeoPoint,
     Peak,
-    PeakCreate,
-    PeakOut,
     PeakPhoto,
-    PeakShortOut,
-    ResponceStatus,
     Ridge,
-    RidgeCreate,
     RidgeInfoLink,
-    RidgeInfoLinkCreate,
-    RidgeOut,
     Route,
-    RouteCreate,
-    RouteListItem,
-    RouteOut,
     RoutePhoto,
     RoutePoint,
-    RoutePointCreate,
     RouteSection,
-    RouteSectionCreate,
 )
 from app.models.users import APIUser
 from app.routers.users import get_current_active_user
+from app.schema.mountains import (
+    PeakCreate,
+    PeakOut,
+    PeakShortOut,
+    ResponceStatus,
+    RidgeCreate,
+    RidgeInfoLinkCreate,
+    RidgeListItem,
+    RidgeOut,
+    RouteCreate,
+    RouteListItem,
+    RouteOut,
+    RoutePointCreate,
+    RouteSectionCreate,
+)
 
 router = APIRouter(
     prefix="/mountains",
@@ -123,8 +126,8 @@ def can_edit(current_user: APIUser, obj) -> bool:
     return True
 
 
-@router.get("/ridges")
-async def get_ridges(session: Session = Depends(get_session)) -> list[Ridge]:
+@router.get("/ridges", response_model=List[RidgeListItem])
+async def get_ridges(session: Session = Depends(get_session)) -> list[RidgeListItem]:
     """get list of mountain ridges"""
     ridges = session.exec(select(Ridge)).all()
     return ridges

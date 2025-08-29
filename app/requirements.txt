@@ -1,7 +1,9 @@
 alembic
 Babel
 black
+cryptography
 isort
+pyjwt
 fastapi[standard]
 passlib[bcrypt]
 pwinput
